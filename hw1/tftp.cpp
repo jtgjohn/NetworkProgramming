@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <iostream>
+#include <errno.h>
 
 #define TIMEOUT 1
 #define RETRIES 10
@@ -21,39 +22,57 @@
 
 #define PACKET_SIZE 512
 
-#define MODE "octet"
-
-typedef struct {
-	char file[PACKET_SIZE];
-} read_request;
-
 
 extern "C" {
 	#include	"../unpv13e/lib/unp.h"
 }
 
 
-
-
 void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
 	in_port_t cli_port = servaddr->sin_port;
 	FILE *file;
+	int blocknum = 0, timeout = 0, attempts = 0, closed = 0, bytesread = 0;
+	//int fd = open(fname, O_RDONLY);
+	char packet[PACKET_SIZE];
 
 
 	file = fopen(fname, "r");
+	if (!file) {
+		perror("Invalid file");
+		exit(1);
+	}
 
-	//google open(file, XXXXXXXreadonly)
-	//lseek()
+	while (!closed) {
+		bytesread = fread(packet, 1, PACKET_SIZE, file);
+
+		if (bytesread < PACKET_SIZE) { //last packet of data to send
+			closed = 1;
+		}
+
+		for (; attempts < RETRIES; attempts++) {
+			/// resend the packet 
+			/// receive response
+		}
+
+		if (attempts > 9) {
+			perror("Retried 10 times, no response ..... aborting\n");
+			exit(1);
+		}
+
+	}
+
 
 
 }
 
-void write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
 
 }
 
 
-void ack() {}
+void ack() {
+
+}
 
 void child_signal(int s) {
 	pid_t pid;
@@ -89,6 +108,10 @@ int main(int argc, char **argv)
 
 	printf("Port: %d\n", portNum);
 
+
+
+
+	///TODO: Read client request, store opcode and filename into  variables
 
 	//server is up, start waiting for a message
 	//dg_echo(sockfd, (SA *) &cliaddr, sizeof(cliaddr));
