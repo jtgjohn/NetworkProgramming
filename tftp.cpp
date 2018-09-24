@@ -100,6 +100,9 @@ int main(int argc, char **argv)
 	for ( ; ; ) {
 		len = sizeof(cliaddr);
 		n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &cliaddr, &len);
+		
+		std::cout << "n: " + n << std::endl;
+		std::cout << "sockfd: " + sockfd << std::endl;
 		std::cout << "n: "<< n << std::endl;
 		std::cout << "msg: " + std::string(mesg) << std::endl;
 		printf("%s", mesg);
