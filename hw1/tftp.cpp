@@ -29,7 +29,7 @@ typedef struct {
 
 
 extern "C" {
-	#include	"unpv13e/lib/unp.h"
+	#include	"../unpv13e/lib/unp.h"
 }
 
 
@@ -53,7 +53,7 @@ void write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname
 }
 
 
-void ack()
+void ack() {}
 
 void child_signal(int s) {
 	pid_t pid;
