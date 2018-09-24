@@ -29,7 +29,13 @@ extern "C" {
 	#include	"unpv13e/lib/unp.h"
 }
 
-void read_request() {
+void read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+	in_port_t cli_port = servaddr->sin_port;
+	FILE *file;
+
+
+	file = fopen(fname, "r");
+
 
 }
 
