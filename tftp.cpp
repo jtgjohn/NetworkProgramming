@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 
 extern "C" {
-	#include	"unp.h"
+	#include	"unpv13e/lib/unp.h"
 }
 
 int
@@ -17,11 +17,13 @@ main(int argc, char **argv)
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sin_family      = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port        = htons(SERV_PORT);
+	servaddr.sin_port        = 0;//htons(SERV_PORT);
 
 	Bind(sockfd, (SA *) &servaddr, sizeof(servaddr));
 	printf("%d", servaddr.sin_port);
 	printf("Ahoy there");
 
-	//dg_echo(sockfd, (SA *) &cliaddr, sizeof(cliaddr));
+	while(1) {
+		dg_echo(sockfd, (SA *) &cliaddr, sizeof(cliaddr));
+	}
 }
