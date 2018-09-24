@@ -132,14 +132,50 @@ int main(int argc, char **argv)
 	for ( ; ; ) {
 		len = sizeof(cliaddr);
 		n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &cliaddr, &len);
-		
-		std::cout << "n: " + n << std::endl;
-		std::cout << "sockfd: " + sockfd << std::endl;
-		std::cout << "n: "<< n << std::endl;
-		std::cout << "msg: " + std::string(mesg) << std::endl;
-		printf("%s", mesg);
 
-		//Sendto(sockfd, mesg, n, 0, pcliaddr, clilen);
+		mesg[n-1] = '\0';
+		//std::string message = mesg;
+		//printf("Op code num is %s\n", message.c_str());
+
+		//std::cout << "break" << std::endl;
+
+		std::string messageText = "";
+
+		int opCode;
+
+		for (int i=0;i<n;i++)
+		{
+			//printf("%d",mesg[i]);
+			messageText += mesg[i];
+			if (i == 1) {
+				opCode = mesg[i];
+			}
+		}
+		
+		//printf("\n");
+		std::string fileName = messageText.substr(0, messageText.find("netascii"));
+
+		//std::cout << "The message text is: " + messageText << std::endl; 
+		printf("Temp op code: %d\n", opCode);
+		std::cout << "The fileName is: " + fileName << std::endl;
+		//printf("The file name is %s\n", fileName.c_str());
+		//std::cout << "The opcode is:" + int(opCode) << std::endl;
+
+		if (opCode == 1) {
+			std::cout << "READ" << std::endl;
+		}else if (opCode == 2) {
+			std::cout << "WRITE" << std::endl;
+		}else{
+			std::cout << "ERROR" << std::endl;
+		}
+
+		//std::cout << "n: " + n << std::endl;
+		//std::cout << "sockfd: " + sockfd << std::endl;
+		//std::cout << "n: "<< n << std::endl;
+		//std::cout << "msg: " + std::string(mesg) << std::endl;
+		//printf("%s", mesg);
+
+
 	}
 	
 
