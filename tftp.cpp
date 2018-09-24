@@ -31,13 +31,23 @@ extern "C" {
 	#include	"unpv13e/lib/unp.h"
 }
 
-void read_request() {
+
+
+
+void read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+	in_port_t cli_port = servaddr->sin_port;
+	FILE *file;
+
+
+	file = fopen(fname, "r");
+
 
 }
 
-void write_request() {
+void write_request(sockddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
 
 }
+
 
 
 
@@ -86,8 +96,10 @@ int main(int argc, char **argv)
 	for ( ; ; ) {
 		len = sizeof(cliaddr);
 		n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &cliaddr, &len);
+		
 		std::cout << "n: " + n << std::endl;
 		std::cout << "sockfd: " + sockfd << std::endl;
+		std::cout << "n: "<< n << std::endl;
 		std::cout << "msg: " + std::string(mesg) << std::endl;
 		printf("%s", mesg);
 
