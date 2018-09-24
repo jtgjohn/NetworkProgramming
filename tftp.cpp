@@ -44,7 +44,7 @@ void read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname)
 
 }
 
-void write_request(sockddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+void write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
 
 }
 
