@@ -1,5 +1,5 @@
 CFLAGS = -g -Wall
-FILES = tftp.cpp unpv13e/libunp.a
+FILES = tftp.cpp ../unpv13e/libunp.a
 
 
 all: 
