@@ -161,9 +161,9 @@ int main(int argc, char **argv)
 		//printf("The file name is %s\n", fileName.c_str());
 		//std::cout << "The opcode is:" + int(opCode) << std::endl;
 
-		if (opCode == 1) {
+		if (opCode == RRQ) {
 			std::cout << "READ" << std::endl;
-		}else if (opCode == 2) {
+		}else if (opCode == WRQ) {
 			std::cout << "WRITE" << std::endl;
 		}else{
 			std::cout << "ERROR" << std::endl;
