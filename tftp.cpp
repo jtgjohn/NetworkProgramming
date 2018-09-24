@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
 #include <iostream>
 
 #define TIMEOUT 1
@@ -24,7 +23,9 @@
 
 #define MODE "octet"
 
-
+typedef struct {
+	char file[PACKET_SIZE];
+} read_request;
 
 
 extern "C" {
@@ -34,12 +35,15 @@ extern "C" {
 
 
 
-void read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
 	in_port_t cli_port = servaddr->sin_port;
 	FILE *file;
 
 
 	file = fopen(fname, "r");
+
+	//google open(file, XXXXXXXreadonly)
+	//lseek()
 
 
 }
@@ -49,7 +53,7 @@ void write_request(sockddr_in* servaddr, socklen_t sockaddr_length, char* fname)
 }
 
 
-
+void ack()
 
 void child_signal(int s) {
 	pid_t pid;
