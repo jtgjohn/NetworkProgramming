@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <iostream>
 #include <errno.h>
+#include <unistd.h>
 
 #define TIMEOUT 1
 #define RETRIES 10
@@ -71,6 +72,14 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char
 
 
 void ack() {
+
+}
+
+void recieve_packet() {
+
+}
+
+void send_packet() {
 
 }
 
