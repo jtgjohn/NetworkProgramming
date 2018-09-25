@@ -197,11 +197,10 @@ int main(int argc, char **argv)
 		else {
 			if (fork() == 0) {
 				if (opcode == RRQ) {
-					std::cout << "READ" << std::endl;
-				}else if (opcode == WRQ) {
-					std::cout << "WRITE" << std::endl;
-				}else{
-					std::cout << "ERROR" << std::endl;
+					handle_read_request(servaddr, sockaddr_length, fileName);
+				}
+				else if (opcode == WRQ) {
+					handle_write_request(servaddr, sockaddr_length, fileName);
 				}
 
 				close(sockfd);
