@@ -29,7 +29,7 @@ extern "C" {
 }
 
 
-void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const char* fname) {
 	in_port_t cli_port = servaddr->sin_port;
 	FILE *file;
 	int blocknum = 0, timeout = 0, attempts = 0, done = 0, bytesread = 0;
@@ -71,7 +71,7 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char*
 	fclose(file);
 }
 
-void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const char* fname) {
 	FILE* file = fopen(fname, "w");
 	int blocknum = 0, done = 0, attempts = 0;
 
@@ -197,10 +197,10 @@ int main(int argc, char **argv)
 		else {
 			if (fork() == 0) {
 				if (opcode == RRQ) {
-					handle_read_request(servaddr, sockaddr_length, fileName);
+					handle_read_request(&servaddr, sockaddr_length, fileName.c_str());
 				}
 				else if (opcode == WRQ) {
-					handle_write_request(servaddr, sockaddr_length, fileName);
+					handle_write_request(&servaddr, sockaddr_length, fileName.c_str()	);
 				}
 
 				close(sockfd);
