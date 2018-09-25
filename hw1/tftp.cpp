@@ -35,7 +35,7 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 	int clifd=0,blocknum = 0, timeout = 0, attempts = 0, done = 0, bytesread = 0;
 	int nrec;
 	char packet[PACKET_SIZE];
-	char m[PACKET_SIZE];
+	char m[4];
 	struct sockaddr_in ack;
 	socklen_t ack_len;
 
@@ -57,26 +57,31 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 			done = 1;
 		}
 
+		printf("file packet: %s with %d bytes\n", packet, bytesread);
 		blocknum++;
 
 		for (; attempts < RETRIES; attempts++) {
 			/// send the packet 
 			//encode packet
+
 			uint16_t opcode = htons(DATA);
 			uint16_t block = htons(blocknum);
-			char data[PACKET_SIZE + 4 + 1];
+			printf("sendop: %d to %d block: %d to %d\n",DATA, opcode, blocknum, block);
+			char data[bytesread + 4];
 			memcpy(data, (char*)&opcode, 2);
 			memcpy(data + 2, (char*)&block, 2);
 			memcpy(data + 4, packet, bytesread);
 
-			sendto(clifd, packet, 4 + bytesread, 0, (struct sockaddr *)servaddr, sockaddr_length);
+			printf("Packet to send: %s\n", data);
+
+			sendto(clifd, data, 4 + bytesread, 0, (struct sockaddr *)servaddr, sockaddr_length);
 
 			/// receive response
 				//if response received, break
 			alarm(1);
-			nrec = recvfrom(clifd, m, PACKET_SIZE, 0, (struct sockaddr *)& ack, (socklen_t *)ack_len);
+			nrec = recvfrom(clifd, m, 4, 0, (struct sockaddr *)& servaddr, (socklen_t *)sockaddr_length);
 			if (nrec < 0) {
-				perror("receive error");
+				perror("receive error in RRQ");
 				return;
 			}
 			alarm(0);
@@ -132,7 +137,7 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 	uint16_t block = htons(blocknum);
 	memcpy(ackpack, (char*)&opcode, 2);
 	memcpy(ackpack + 2, (char*)&block, 2);
-
+	printf("ackpack %s\n", ackpack);
 	sendto(clifd, ackpack, 4, 0, (struct sockaddr*)servaddr, sockaddr_length);
 
 
@@ -151,44 +156,58 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 		int sockfd = 0;;
 		int	n;
 		socklen_t len;
-		char mesg[MAXLINE];
+		char mesg[PACKET_SIZE];
+		blocknum++;
 
 		len = sizeof(servaddr);
 
 		for(; attempts < RETRIES; attempts++) {
 			// Receive data
-			printf("HEARA\n");
-			n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &servaddr, &len);
+
+			printf("RECEIVED: ");
+			n = Recvfrom(clifd, mesg, PACKET_SIZE, 0, (SA *) &servaddr, &len);
 			//data will have opcode of 3
 			for (int i=0;i<n;i++) {
 				//printf("%d",mesg[i]);
 				messageText += mesg[i];
+				printf("%d", mesg[i]);
 				if (i == 1) {
 					opcode = mesg[i];
 				}
 			}
 
-			if (opcode == DATA) {
-				break;
-			}
+			printf("\n");
 
 				// If received, break
 			// Send ack 
-			block = htons(blocknum);
-			opcode = htons(ACK);
-			memcpy(ackpack, (char*)&opcode, 2);
-			memcpy(ackpack + 2, (char*)&block, 2);
-			
-			sendto(clifd, ackpack, 4, 0, (struct sockaddr*)servaddr, sockaddr_length);
+
 			alarm(1);
+			if (opcode == DATA) {
+				break;
+			}
+			if (n < PACKET_SIZE) {
+				done = 1;
+			}
 		}
 
 		if(attempts > 9) {
 			perror("Retried 10 times, no response ..... aborting\n");
 			exit(1);
 		}
+		unsigned char sendack[4];
+		block = htons(blocknum);
+		opcode = htons(ACK);
+		memcpy(sendack, (char*)&opcode, 2);
+		memcpy(sendack + 2, (char*)&block, 2);
+		printf("sendack %s\n", sendack);
+		
+		if (sendto(clifd, ackpack, 4, 0, (struct sockaddr*)servaddr, sockaddr_length) < 0) {
+			if(errno == EFAULT)
+			perror("error sending ack to client\n");
+			exit(1);
+		}
 
-		//TDOD: write data here
+		//write data to file here
 		fputs(messageText.c_str(), file);
 
 
@@ -232,7 +251,7 @@ int main(int argc, char **argv)
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sin_family      = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port        = htons(0);//htons(9877);//htons(0);
+	servaddr.sin_port        = htons(0);
 
 	//sockfd = socket(PF_INET, SOCK_DGRAM, 0);
 	Bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
@@ -273,6 +292,9 @@ int main(int argc, char **argv)
 		uint16_t* opp = (uint16_t*)mesg;
 		opcode = ntohs(*opp);
 
+
+
+		printf("PACKET: ");
 		for (int i=0;i<n;i++)
 		{
 			printf("%d",mesg[i]);
@@ -282,7 +304,7 @@ int main(int argc, char **argv)
 			// }
 		}
 		
-		//printf("\n");
+		printf("\n");
 		std::string fileName = messageText.substr(2, messageText.find("octet"));
 		const char* fname = fileName.c_str();
 		//std::cout << "The message text is: " + messageText << std::endl; 
@@ -291,17 +313,23 @@ int main(int argc, char **argv)
 		//std::cout << "The opcode is:" + int(opcode) << std::endl;
 		printf("OPCODE: %d\n", opcode);
 		if(opcode != RRQ && opcode != WRQ) {
-			perror("INVALID PACKET TYPE");
+			perror("wrong\n");
 			exit(1);
+			// *opp = htons(ERROR);
+			// *(opp+1) = htons(4);
+			// *(mesg + 4) = 0;
+
+			// sendto(sockfd, mesg, 5, 0, (struct sockaddr *)&servaddr, sockaddr_length);
+
 		}
 		else {
 			if (fork() == 0) {
 				printf("The fileName is: %s\n",fname);
 				if (opcode == RRQ) {
-					handle_read_request(&servaddr, sockaddr_length, fname);
+					handle_read_request(&cliaddr, len, fname);
 				}
 				else if (opcode == WRQ) {
-					handle_write_request(&servaddr, sockaddr_length, fname	);
+					handle_write_request(&cliaddr, len, fname	);
 				}
 
 				exit(0);
