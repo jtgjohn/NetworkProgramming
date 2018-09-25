@@ -86,9 +86,23 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 
 void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const char* fname) {
 	FILE* file = fopen(fname, "w");
-	int blocknum = 0, done = 0, attempts = 0;
+	int blocknum = 0, done = 0, attempts = 0, clifd=0;
+
+	if ((clifd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+		printf("Unable to create client socket\n");
+		return;
+	}
 
 	//TODO: send ack here
+	unsigned char ackpack[4];
+	uint16_t opcode = htons(ACK);
+	uint16_t block = htons(blocknum);
+	memcpy(ackpack, (char*)&opcode, 2);
+	memcpy(ackpack + 2, (char*)&block, 2);
+
+	sendto(clifd, ackpack, 4, 0, (struct sockaddr*)servaddr, sockaddr_length);
+
+
 
 	if (!file) {
 		perror("File could not be created\n");
@@ -126,6 +140,11 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 
 				// If received, break
 			// Send ack 
+			block = htons(blocknum);
+			memcpy(ackpack, (char*)&opcode, 2);
+			memcpy(ackpack + 2, (char*)&block, 2);
+			
+			sendto(clifd, ackpack, 4, 0, (struct sockaddr*)servaddr, sockaddr_length);
 			alarm(1);
 		}
 
