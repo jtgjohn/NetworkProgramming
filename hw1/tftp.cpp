@@ -82,10 +82,35 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 		exit(1);
 	}
 
+	
 
 	while(!done) {
+		std::string messageText = "";
+		int opcode;
+
+		int sockfd = 0;;
+		int	n;
+		socklen_t len;
+		char mesg[MAXLINE];
+
+		len = sizeof(servaddr);
+
 		for(; attempts < RETRIES; attempts++) {
 			// Receive data
+			n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &servaddr, &len);
+			//data will have opcode of 3
+			for (int i=0;i<n;i++) {
+				//printf("%d",mesg[i]);
+				messageText += mesg[i];
+				if (i == 1) {
+					opcode = mesg[i];
+				}
+			}
+
+			if (opcode == DATA) {
+				break;
+			}
+
 				// If received, break
 			// Send ack 
 			alarm(1);
@@ -97,6 +122,7 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 		}
 
 		//TDOD: write data here
+		fputs(messageText.c_str(), file);
 
 
 	}
