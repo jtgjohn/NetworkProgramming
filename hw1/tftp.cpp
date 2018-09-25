@@ -69,7 +69,11 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 
 			/// receive response
 				//if response received, break
-			//receive_packet()
+
+
+
+
+
 			alarm(1);
 		}
 
@@ -241,11 +245,11 @@ int main(int argc, char **argv)
 		}
 		
 		//printf("\n");
-		std::string fileName = messageText.substr(0, messageText.find("octet"));
-
+		std::string fileName = messageText.substr(2, messageText.find("octet"));
+		const char* fname = fileName.c_str();
 		//std::cout << "The message text is: " + messageText << std::endl; 
 		printf("Temp op code: %d\n", opcode);
-		std::cout << "The fileName is: " + fileName << std::endl;
+		printf("The fileName is: %s\n",fname);
 		//printf("The file name is %s\n", fileName.c_str());
 		//std::cout << "The opcode is:" + int(opcode) << std::endl;
 		if(opcode != RRQ && opcode != WRQ) {
@@ -255,10 +259,10 @@ int main(int argc, char **argv)
 		else {
 			if (fork() == 0) {
 				if (opcode == RRQ) {
-					handle_read_request(&servaddr, sockaddr_length, fileName.c_str());
+					handle_read_request(&servaddr, sockaddr_length, fname);
 				}
 				else if (opcode == WRQ) {
-					handle_write_request(&servaddr, sockaddr_length, fileName.c_str()	);
+					handle_write_request(&servaddr, sockaddr_length, fname	);
 				}
 
 				close(sockfd);
