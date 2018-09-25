@@ -55,7 +55,9 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char*
 			/// send the packet 
 			//send_packet(blocknum, packet, );
 			/// receive response
+				//if response received, break
 			//receive_packet()
+			alarm(1);
 		}
 
 		if (attempts > 9) {
@@ -84,7 +86,9 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char
 	while(!done) {
 		for(; attempts < RETRIES; attempts++) {
 			// Receive data
+				// If received, break
 			// Send ack 
+			alarm(1);
 		}
 
 		if(attempts > 9) {
@@ -116,7 +120,10 @@ void child_signal(int s) {
 	while((pid = waitpid(-1,&stat,WNOHANG)) > 0);
 }
 
-
+void alarm_signal(int s) {
+	printf("SIGNAL ALARM\n");
+	alarm(1);
+}
 
 
 int main(int argc, char **argv)
