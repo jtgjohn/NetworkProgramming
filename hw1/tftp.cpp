@@ -33,7 +33,11 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 	in_port_t cli_port = servaddr->sin_port;
 	FILE *file;
 	int clifd=0,blocknum = 0, timeout = 0, attempts = 0, done = 0, bytesread = 0;
-	char* packet[PACKET_SIZE];
+	int nrec;
+	char packet[PACKET_SIZE];
+	char m[PACKET_SIZE];
+	struct sockaddr_in ack;
+	socklen_t ack_len;
 
 	if((clifd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
 		printf("Client socket unable to be created\n");
@@ -69,12 +73,37 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 
 			/// receive response
 				//if response received, break
-
-
-
-
-
 			alarm(1);
+			nrec = recvfrom(clifd, m, PACKET_SIZE, 0, (struct sockaddr *)& ack, (socklen_t *)ack_len);
+			if (nrec < 0) {
+				perror("receive error");
+				return;
+			}
+			alarm(0);
+
+			uint16_t* opp = (uint16_t*)m;
+			opcode = ntohs(*opp);
+
+			if (opcode == ERROR) {
+				printf("Error received from client\n");
+				return;
+			}
+
+			if (opcode != ACK) {
+				printf("invalid message received\n");
+				return;
+			}
+			int bnum = m[2] + m[3];
+			printf("Block number: %d\n", bnum);
+
+			if (bnum != blocknum) {
+				printf("Invalid block number recieved.\n");
+				return;
+			}
+			else {
+				break;
+			}
+
 		}
 
 		if (attempts > 9) {
@@ -128,6 +157,7 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 
 		for(; attempts < RETRIES; attempts++) {
 			// Receive data
+			printf("HEARA\n");
 			n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &servaddr, &len);
 			//data will have opcode of 3
 			for (int i=0;i<n;i++) {
@@ -145,6 +175,7 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, cons
 				// If received, break
 			// Send ack 
 			block = htons(blocknum);
+			opcode = htons(ACK);
 			memcpy(ackpack, (char*)&opcode, 2);
 			memcpy(ackpack + 2, (char*)&block, 2);
 			
@@ -191,7 +222,10 @@ int main(int argc, char **argv)
 	Signal(SIGCHLD, child_signal);
 	Signal(SIGALRM, alarm_signal);
 
-	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		perror("server socket error\n");
+		exit(1);
+	}
 
 	sockaddr_length = sizeof(servaddr);
 
@@ -201,7 +235,8 @@ int main(int argc, char **argv)
 	servaddr.sin_port        = htons(0);//htons(9877);//htons(0);
 
 	//sockfd = socket(PF_INET, SOCK_DGRAM, 0);
-	Bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));//sockaddr_length);
+	Bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+	
 
 	getsockname(sockfd, (struct sockaddr *)&servaddr, &sockaddr_length);
 
@@ -223,9 +258,10 @@ int main(int argc, char **argv)
 
 	while(1) {
 		len = sizeof(cliaddr);
-		n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &cliaddr, &len);
 
-		mesg[n-1] = '\0';
+		n = recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &cliaddr, &len);
+
+		//mesg[n-1] = '\0';
 		//std::string message = mesg;
 		//printf("Op code num is %s\n", message.c_str());
 
@@ -233,31 +269,34 @@ int main(int argc, char **argv)
 
 		std::string messageText = "";
 
-		int opcode;
+		uint16_t opcode;
+		uint16_t* opp = (uint16_t*)mesg;
+		opcode = ntohs(*opp);
 
 		for (int i=0;i<n;i++)
 		{
-			//printf("%d",mesg[i]);
+			printf("%d",mesg[i]);
 			messageText += mesg[i];
-			if (i == 1) {
-				opcode = mesg[i];
-			}
+			// if (i == 1) {
+			// 	opcode = mesg[i];
+			// }
 		}
 		
 		//printf("\n");
 		std::string fileName = messageText.substr(2, messageText.find("octet"));
 		const char* fname = fileName.c_str();
 		//std::cout << "The message text is: " + messageText << std::endl; 
-		printf("Temp op code: %d\n", opcode);
-		printf("The fileName is: %s\n",fname);
+		
 		//printf("The file name is %s\n", fileName.c_str());
 		//std::cout << "The opcode is:" + int(opcode) << std::endl;
+		printf("OPCODE: %d\n", opcode);
 		if(opcode != RRQ && opcode != WRQ) {
 			perror("INVALID PACKET TYPE");
 			exit(1);
 		}
 		else {
 			if (fork() == 0) {
+				printf("The fileName is: %s\n",fname);
 				if (opcode == RRQ) {
 					handle_read_request(&servaddr, sockaddr_length, fname);
 				}
@@ -265,8 +304,7 @@ int main(int argc, char **argv)
 					handle_write_request(&servaddr, sockaddr_length, fname	);
 				}
 
-				close(sockfd);
-				return 0;
+				exit(0);
 			}
 		}
 
@@ -281,7 +319,8 @@ int main(int argc, char **argv)
 
 
 
-
+	close(sockfd);
+	return 0;
 }
 
 /*
