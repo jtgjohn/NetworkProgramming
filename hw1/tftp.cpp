@@ -32,27 +32,30 @@ extern "C" {
 void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
 	in_port_t cli_port = servaddr->sin_port;
 	FILE *file;
-	int blocknum = 0, timeout = 0, attempts = 0, closed = 0, bytesread = 0;
-	//int fd = open(fname, O_RDONLY);
-	char packet[PACKET_SIZE];
+	int blocknum = 0, timeout = 0, attempts = 0, done = 0, bytesread = 0;
+	char* packet[PACKET_SIZE];
 
 
 	file = fopen(fname, "r");
 	if (!file) {
-		perror("Invalid file");
+		perror("Invalid file\n");
 		exit(1);
 	}
 
-	while (!closed) {
+	while (!done) {
 		bytesread = fread(packet, 1, PACKET_SIZE, file);
 
 		if (bytesread < PACKET_SIZE) { //last packet of data to send
-			closed = 1;
+			done = 1;
 		}
 
+		blocknum++;
+
 		for (; attempts < RETRIES; attempts++) {
-			/// resend the packet 
+			/// send the packet 
+			//send_packet(blocknum, packet, );
 			/// receive response
+			//receive_packet()
 		}
 
 		if (attempts > 9) {
@@ -63,10 +66,34 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char*
 	}
 
 
-
+	fclose(file);
 }
 
 void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char* fname) {
+	FILE* file = fopen(fname, "w");
+	int blocknum = 0, done = 0, attempts = 0;
+
+	//TODO: send ack here
+
+	if (!file) {
+		perror("File could not be created\n");
+		exit(1);
+	}
+
+
+	while(!done) {
+		for(; attempts < RETRIES; attempts++) {
+			// Receive data
+			// Send ack 
+		}
+
+		if(attempts > 9) {
+			perror("Retried 10 times, no response ..... aborting\n");
+			exit(1);
+		}
+
+
+	}
 
 }
 
@@ -75,7 +102,7 @@ void ack() {
 
 }
 
-void recieve_packet() {
+void receive_packet() {
 
 }
 
