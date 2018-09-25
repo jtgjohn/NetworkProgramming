@@ -96,23 +96,16 @@ void handle_write_request(sockaddr_in* servaddr, socklen_t sockaddr_length, char
 			exit(1);
 		}
 
+		//TDOD: write data here
+
 
 	}
 
-}
-
-
-void ack() {
+	fclose(file);
 
 }
 
-void receive_packet() {
 
-}
-
-void send_packet() {
-
-}
 
 void child_signal(int s) {
 	pid_t pid;
@@ -132,6 +125,9 @@ int main(int argc, char **argv)
 
 	int sockfd;
 	struct sockaddr_in	servaddr, cliaddr;
+
+	Signal(SIGCHLD, child_signal);
+	Signal(SIGALRM, alarm_signal);
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -163,7 +159,7 @@ int main(int argc, char **argv)
 	socklen_t	len;
 	char		mesg[MAXLINE];
 
-	for ( ; ; ) {
+	while(1) {
 		len = sizeof(cliaddr);
 		n = Recvfrom(sockfd, mesg, MAXLINE, 0, (SA *) &cliaddr, &len);
 
@@ -175,32 +171,42 @@ int main(int argc, char **argv)
 
 		std::string messageText = "";
 
-		int opCode;
+		int opcode;
 
 		for (int i=0;i<n;i++)
 		{
 			//printf("%d",mesg[i]);
 			messageText += mesg[i];
 			if (i == 1) {
-				opCode = mesg[i];
+				opcode = mesg[i];
 			}
 		}
 		
 		//printf("\n");
-		std::string fileName = messageText.substr(0, messageText.find("netascii"));
+		std::string fileName = messageText.substr(0, messageText.find("octet"));
 
 		//std::cout << "The message text is: " + messageText << std::endl; 
-		printf("Temp op code: %d\n", opCode);
+		printf("Temp op code: %d\n", opcode);
 		std::cout << "The fileName is: " + fileName << std::endl;
 		//printf("The file name is %s\n", fileName.c_str());
-		//std::cout << "The opcode is:" + int(opCode) << std::endl;
+		//std::cout << "The opcode is:" + int(opcode) << std::endl;
+		if(opcode != RRQ && opcode != WRQ) {
+			perror("INVALID PACKET TYPE");
+			exit(1);
+		}
+		else {
+			if (fork() == 0) {
+				if (opcode == RRQ) {
+					std::cout << "READ" << std::endl;
+				}else if (opcode == WRQ) {
+					std::cout << "WRITE" << std::endl;
+				}else{
+					std::cout << "ERROR" << std::endl;
+				}
 
-		if (opCode == RRQ) {
-			std::cout << "READ" << std::endl;
-		}else if (opCode == WRQ) {
-			std::cout << "WRITE" << std::endl;
-		}else{
-			std::cout << "ERROR" << std::endl;
+				close(sockfd);
+				return 0;
+			}
 		}
 
 		//std::cout << "n: " + n << std::endl;
@@ -211,7 +217,9 @@ int main(int argc, char **argv)
 
 
 	}
-	
+
+
+
 
 }
 
