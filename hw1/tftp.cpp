@@ -32,9 +32,13 @@ extern "C" {
 void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const char* fname) {
 	in_port_t cli_port = servaddr->sin_port;
 	FILE *file;
-	int blocknum = 0, timeout = 0, attempts = 0, done = 0, bytesread = 0;
+	int clifd=0,blocknum = 0, timeout = 0, attempts = 0, done = 0, bytesread = 0;
 	char* packet[PACKET_SIZE];
 
+	if((clifd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
+		printf("Client socket unable to be created\n");
+		return;
+	}
 
 	file = fopen(fname, "r");
 	if (!file) {
@@ -53,7 +57,16 @@ void handle_read_request(sockaddr_in* servaddr, socklen_t sockaddr_length, const
 
 		for (; attempts < RETRIES; attempts++) {
 			/// send the packet 
-			//send_packet(blocknum, packet, );
+			//encode packet
+			uint16_t opcode = htons(DATA);
+			uint16_t block = htons(blocknum);
+			char data[PACKET_SIZE + 4 + 1];
+			memcpy(data, (char*)&opcode, 2);
+			memcpy(data + 2, (char*)&block, 2);
+			memcpy(data + 4, packet, bytesread);
+
+			sendto(clifd, packet, 4 + bytesread, 0, (struct sockaddr *)servaddr, sockaddr_length);
+
 			/// receive response
 				//if response received, break
 			//receive_packet()
