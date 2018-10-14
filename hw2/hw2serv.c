@@ -102,14 +102,28 @@ int main() {
 			if (clifds[i] != -1)  {
 				if (FD_ISSET(clifds[i], &rset)) {
 					char buffer[MAXLINE];
-					read(clifds[i], buffer, MAXLINE);
+					int n;
+
+					//If a client disconnects, remove thier info and username, close socket.
+					if ((n =read(clifds[i], buffer, MAXLINE)) == 0) {
+						close(clifds[i]);
+						clifds[i] = -1;
+						clinames[i] = "";
+						continue;
+					}
+
+					//Client guess of a word
 					std::string guess = str(buffer);
+
+					//If a client guesses a word of the wrong length, send error message
+					//but do not disconnect the client
 					if (guess.length() != secretword.length()) {
 						std::string errmesg;
 						errmesg = "You must guess a word with " + str(secretword.length()) + " characters\n";
 						write(clifds[i],  errmesg.c_str(), errmesg.length());
 						continue;
 					}
+					//Analyze the client's guess and output its info.
 					
 				}
 			}
