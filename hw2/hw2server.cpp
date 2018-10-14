@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 printf("Port: %d\n",servaddr.sin_port);
 
 	int lsock;
-	if ((lscok = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
+	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
 		perror("could not create listen socket\n");
 		return 1;
 	}
@@ -60,13 +60,13 @@ printf("Port: %d\n",servaddr.sin_port);
 		return 1;
 	}
 
-	if (listen(lsock, 1) < 0) {
+	if (listen(lsock, 10) < 0) {
 		perror("failed to open socket for listening\n");
 		return 1;
 	}
 	maxfds = lsock;
 	struct sockaddr_in cliaddr;
-	int clilen = 0;
+	socklen_t clilen = 0;
 
 	fd_set rset;
 	while(1) {
@@ -78,9 +78,9 @@ printf("Port: %d\n",servaddr.sin_port);
 		}
 
 		for(int i=0; i < MAX_CLIENTS; i++) {
-			if (clifd[i] != -1) {
-				FD_SET(clifd[i], &rset);
-				maxfds = max(maxfds, clifd[i]);
+			if (clifds[i] != -1) {
+				FD_SET(clifds[i], &rset);
+				maxfds = std::max(maxfds, clifds[i]);
 			}
 		}
 
@@ -96,8 +96,8 @@ printf("Port: %d\n",servaddr.sin_port);
 
 			int cli_index;
 			for (int i=0; i<MAX_CLIENTS; i++) {
-				if (clifd[i] == -1) {
-					clifd[i] = clisock;
+				if (clifds[i] == -1) {
+					clifds[i] = clisock;
 					cli_index = i;
 				}
 			}
@@ -105,9 +105,10 @@ printf("Port: %d\n",servaddr.sin_port);
 			std::string username = "Choose a unique username: ";
 			int choosingname = 1;
 			int nametaken = 0;
+			int n;
 			while(choosingname) {
 				char buffer[MAXLINE];
-				read(clisock, buffer, MAXLINE);
+				n = read(clisock, buffer, MAXLINE);
 				for (int i=0; i<MAX_CLIENTS; i++) {
 					if (clinames[i] == buffer) {
 						nametaken = 1;
@@ -115,7 +116,7 @@ printf("Port: %d\n",servaddr.sin_port);
 					}
 				}
 				if (!nametaken) {
-					clinames[cli_index] = str(buffer);
+					clinames[cli_index].assign(buffer,n);
 					choosingname = 0;
 				}
 			}
@@ -136,13 +137,14 @@ printf("Port: %d\n",servaddr.sin_port);
 					}
 
 					//Client guess of a word
-					std::string guess = str(buffer);
+					std::string guess;
+					guess.assign(buffer,n);
 
 					//If a client guesses a word of the wrong length, send error message
 					//but do not disconnect the client
 					if (guess.length() != secretword.length()) {
 						std::string errmesg;
-						errmesg = "You must guess a word with " + str(secretword.length()) + " characters\n";
+						errmesg = "You must guess a word with " + std::to_string(secretword.length()) + " characters\n";
 						write(clifds[i],  errmesg.c_str(), errmesg.length());
 						continue;
 					}
