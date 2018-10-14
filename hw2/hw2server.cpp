@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 int main(int argc, char* argv[]) {
 
@@ -43,13 +44,14 @@ int main(int argc, char* argv[]) {
 		std::vector<char> wordInfo;
 
 		for (int i = 0; i < randomWord.size(); i++) {
-			wordInfo.push_back(randomWord[i]);
+			wordInfo.push_back(tolower(randomWord[i]));
 		}
 
 		std::cout << "Enter guesses" << std::endl;
 
 		while(1) {
 			
+			std::vector<char> tempWord = wordInfo;
 
 			std::string guess;
 
@@ -61,7 +63,34 @@ int main(int argc, char* argv[]) {
 
 			if (guess.size() != randomWord.size()) {
 				std::cout << "Wrong length" << std::endl;
+				continue;
 			}
+
+			int numCorrect = 0;
+			int numPlaced = 0;
+
+			//get num correct
+			for (int i = 0; i < guess.size(); i++) {
+				std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[i]));
+
+				if (itr != tempWord.end()) {
+					int loc = std::distance(tempWord.begin(), itr);
+					tempWord.erase(tempWord.begin() + loc);
+					numCorrect++;
+				}
+				//else the element wasn't found
+
+			}
+
+			//get the num placed
+			for (int i = 0; i < guess.size(); i++) {
+				if (tolower(guess[i]) == tolower(randomWord[i])) {
+					numPlaced++;
+				}
+			}
+
+			std::cout << "UName guessed " << guess << ": " << numCorrect << " letter(s) were correct and " << numPlaced << " letter(s) were correctly placed." << std::endl;
+
 		}
 
 	}
