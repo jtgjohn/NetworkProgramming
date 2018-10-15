@@ -124,6 +124,7 @@ int main(int argc, char* argv[]) {
 			int nametaken = 0;
 			int n;
 			while(choosingname) {
+				write(clisock, username.c_str(), username.length());
 				char buffer[MAXLINE];
 				n = read(clisock, buffer, MAXLINE);
 				for (int i=0; i<MAX_CLIENTS; i++) {
@@ -137,6 +138,7 @@ int main(int argc, char* argv[]) {
 					choosingname = 0;
 				}
 			}
+			numclients++;
 		}
 
 		for (int i=0; i<MAX_CLIENTS; i++) {
@@ -150,6 +152,7 @@ int main(int argc, char* argv[]) {
 						close(clifds[i]);
 						clifds[i] = -1;
 						clinames[i] = "";
+						numclients--;
 						continue;
 					}
 
@@ -211,6 +214,7 @@ int main(int argc, char* argv[]) {
 								clinames[j] = "";
 								randomIndex = rand() % wordsList.size();
 								secretword = wordsList[randomIndex];
+								numclients = 0;
 								break;
 							}
 						}
