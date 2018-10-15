@@ -72,6 +72,8 @@ int main(int argc, char* argv[]) {
 	int randomIndex = rand() % wordsList.size();
 
 	secretword = wordsList[randomIndex];
+	//remove the newline
+	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
 
 	std::cout << secretword << std::endl;
 
@@ -217,6 +219,8 @@ int main(int argc, char* argv[]) {
 								clinames[j] = "";
 								randomIndex = rand() % wordsList.size();
 								secretword = wordsList[randomIndex];
+								//remove the newline
+								secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
 								numclients = 0;
 								break;
 							}
