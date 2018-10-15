@@ -74,11 +74,30 @@ int main(int argc, char* argv[]) {
 	secretword = wordsList[randomIndex];
 	//remove the newline
 	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
+	secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
 
+	if (!secretword.empty() && secretword[secretword.length()-1] == '\n') {
+	    secretword.erase(secretword.length()-1);
+	}
+	if (!secretword.empty() && secretword[secretword.length()-1] == ' ') {
+	  secretword.erase(secretword.length()-1);
+	}
+	if (!secretword.empty() && secretword[secretword.length()-1] == '\r') {
+	  secretword.erase(secretword.length()-1);
+	}
 	std::cout << secretword << std::endl;
 
 	std::vector<char> wordInfo;
-	int wordlen = secretword.length();
+
+	int wordlen =0;
+
+	while(secretword.c_str()[wordlen] !='\0')
+	{
+		wordlen++;
+	}
+	
+
+	//int wordlen = secretword.length();
 	for (int i = 0; i < wordlen; i++) {
 		wordInfo.push_back(tolower(secretword[i]));
 	}
@@ -118,6 +137,7 @@ int main(int argc, char* argv[]) {
 				if (clifds[i] == -1) {
 					clifds[i] = clisock;
 					cli_index = i;
+					break;
 				}
 			}
 
