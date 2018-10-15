@@ -76,16 +76,8 @@ int main(int argc, char* argv[]) {
 	//remove the newline
 	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
 	secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
-
-	if (!secretword.empty() && secretword[secretword.length()-1] == '\n') {
-	    secretword.erase(secretword.length()-1);
-	}
-	if (!secretword.empty() && secretword[secretword.length()-1] == ' ') {
-	  secretword.erase(secretword.length()-1);
-	}
-	if (!secretword.empty() && secretword[secretword.length()-1] == '\r') {
-	  secretword.erase(secretword.length()-1);
-	}
+	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
+	
 	std::cout << secretword << std::endl;
 
 	std::vector<char> wordInfo;
