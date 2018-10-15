@@ -28,7 +28,6 @@ int main(int argc, char* argv[]) {
 	servaddr.sin_port = htons(0);
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-/*****************************************************************************/
 	std::string dictionary = argv[1];
 	std::vector<std::string> wordsList;
 
@@ -40,84 +39,21 @@ int main(int argc, char* argv[]) {
 
 	for (std::string line; getline(input, line);) {
 		wordsList.push_back(line);
-		//std::cout << line << std::endl;
 	}
 
-	std::cout << "END of file" << std::endl;
-	//for (int i = 0; i < wordsList.size(); i++) {
-	//	std::cout << wordsList[i];
-	//}
+	srand(servaddr.sin_port);
+	int randomIndex = rand() % wordsList.size();
 
-	//int randomIndex = rand() % wordsList.size();
+	secretword = wordsList[randomIndex];
 
-	//randomWord = wordsList[randomIndex];
-
-	while(1) {
-		int randomIndex = rand() % wordsList.size();
-
-		std::string randomWord = wordsList[randomIndex];
-
-		std::cout << randomWord << std::endl;
-
-		//create a char vector from the chosen word
-		std::vector<char> wordInfo;
-
-		for (int i = 0; i < randomWord.size(); i++) {
-			wordInfo.push_back(tolower(randomWord[i]));
-		}
-
-		std::cout << "Enter guesses" << std::endl;
-
-		while(1) {
-			
-			std::vector<char> tempWord = wordInfo;
-
-			std::string guess;
-
-			std::cin >> guess;
-
-			std::cout << "Guess " << guess << " " << guess.size() << std::endl;
-			std::cout << std::endl;
-			std::cout << "Word " << randomWord << " " << randomWord.size() << std::endl;
-
-			if (guess.size() != randomWord.size()) {
-				std::cout << "Wrong length" << std::endl;
-				continue;
-			}
-
-			int numCorrect = 0;
-			int numPlaced = 0;
-
-			//get num correct
-			for (int i = 0; i < guess.size(); i++) {
-				std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[i]));
-
-				if (itr != tempWord.end()) {
-					int loc = std::distance(tempWord.begin(), itr);
-					tempWord.erase(tempWord.begin() + loc);
-					numCorrect++;
-				}
-				//else the element wasn't found
-
-			}
-
-			//get the num placed
-			for (int i = 0; i < guess.size(); i++) {
-				if (tolower(guess[i]) == tolower(randomWord[i])) {
-					numPlaced++;
-				}
-			}
-
-			std::cout << "UName guessed " << guess << ": " << numCorrect << " letter(s) were correct and " << numPlaced << " letter(s) were correctly placed." << std::endl;
-
-		}
-
-	}
-/*****************************************************************************/
 
 	printf("Port: %d\n",servaddr.sin_port);
 
+	std::vector<char> wordInfo;
 	int wordlen = secretword.length();
+	for (int i = 0; i < wordlen; i++) {
+		wordInfo.push_back(tolower(secretword[i]));
+	}
 
 	int lsock;
 	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
@@ -209,7 +145,6 @@ int main(int argc, char* argv[]) {
 					//Client guess of a word
 					std::string guess;
 					guess.assign(buffer,n);
-					std::transform(guess.begin(), guess.end(), ::tolower);
 
 					//If a client guesses a word of the wrong length, send error message
 					//but do not disconnect the client
@@ -221,16 +156,38 @@ int main(int argc, char* argv[]) {
 					}
 					//Analyze the client's guess and output its info.
 
-					//Count all letters that are correctly placed
-					int correctly_placed = 0;
-					for(int j=0; j<wordlen; j++) {
-						if(secretword[j] == guess[j]) 
-							correctly_placed++;
+
+					int numCorrect = 0;
+					int numPlaced = 0;
+
+					//create a char vector from the chosen word
+					std::vector<char> wordInfo;
+
+					std::vector<char> tempWord = wordInfo;
+
+
+					//get num correct
+					for (int i = 0; i < guess.size(); i++) {
+						std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[i]));
+
+						if (itr != tempWord.end()) {
+							int loc = std::distance(tempWord.begin(), itr);
+							tempWord.erase(tempWord.begin() + loc);
+							numCorrect++;
+						}
+						//else the element wasn't found
 					}
 
-					//Count all letters that were correct
 
-					
+					//Count all letters that are correctly placed
+					//get the num placed
+					for (int i = 0; i < guess.size(); i++) {
+						if (tolower(guess[i]) == tolower(secretword[i])) {
+							numPlaced++;
+						}
+					}
+
+
 				}
 			}
 		}
