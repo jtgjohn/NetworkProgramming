@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <algorithm>
 
 #define MAX_CLIENTS 5
 #define MAXLINE 1024
@@ -47,7 +48,9 @@ int main(int argc, char* argv[]) {
 	}
 /*****************************************************************************/
 
-printf("Port: %d\n",servaddr.sin_port);
+	printf("Port: %d\n",servaddr.sin_port);
+
+	int wordlen = secretword.length();
 
 	int lsock;
 	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
@@ -139,16 +142,27 @@ printf("Port: %d\n",servaddr.sin_port);
 					//Client guess of a word
 					std::string guess;
 					guess.assign(buffer,n);
+					std::transform(guess.begin(), guess.end(), ::tolower);
 
 					//If a client guesses a word of the wrong length, send error message
 					//but do not disconnect the client
 					if (guess.length() != secretword.length()) {
 						std::string errmesg;
-						errmesg = "You must guess a word with " + std::to_string(secretword.length()) + " characters\n";
+						errmesg = "You must guess a word with " + std::to_string(wordlen) + " characters\n";
 						write(clifds[i],  errmesg.c_str(), errmesg.length());
 						continue;
 					}
 					//Analyze the client's guess and output its info.
+
+					//Count all letters that are correctly placed
+					int correctly_placed = 0;
+					for(int j=0; j<wordlen; j++) {
+						if(secretword[j] == guess[j]) 
+							correctly_placed++;
+					}
+
+					//Count all letters that were correct
+
 					
 				}
 			}
