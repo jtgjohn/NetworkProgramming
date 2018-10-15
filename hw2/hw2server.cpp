@@ -157,6 +157,9 @@ int main(int argc, char* argv[]) {
 					std::string guess;
 					guess.assign(buffer,n);
 
+					//remove the newline
+					guess.erase(std::remove(guess.begin(), guess.end(), '\n'), guess.end());
+
 					//If a client guesses a word of the wrong length, send error message
 					//but do not disconnect the client
 					if (guess.length() != secretword.length()) {
