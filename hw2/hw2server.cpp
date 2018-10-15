@@ -202,9 +202,7 @@ int main(int argc, char* argv[]) {
 					int numCorrect = 0;
 					int numPlaced = 0;
 
-					//create a char vector from the chosen word
-					std::vector<char> wordInfo;
-
+					//create a temp char vector from the randomly picked word
 					std::vector<char> tempWord = wordInfo;
 
 
@@ -250,8 +248,16 @@ int main(int argc, char* argv[]) {
 						secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
 						secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
 						std::cout << secretword << std::endl;
+
+						std::vector<char> wordInfo;
+						for (int k = 0; k < wordlen; k++) {
+							wordInfo.push_back(secretword[k]);
+						}
+
 						break;
 					}
+
+					std::cout << numCorrect << std::endl;
 
 					std::string guessinfo;
 					guessinfo = clinames[i] + " guessed " + guess +  ": " + std::to_string(numCorrect);
