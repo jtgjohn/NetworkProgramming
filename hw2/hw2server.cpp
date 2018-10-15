@@ -89,8 +89,6 @@ int main(int argc, char* argv[]) {
 		wordlen++;
 	}
 	
-
-	//int wordlen = secretword.length();
 	for (int i = 0; i < wordlen; i++) {
 		wordInfo.push_back(tolower(secretword[i]));
 	}
@@ -135,27 +133,8 @@ int main(int argc, char* argv[]) {
 			}
 
 
-			int choosingname = 1;
-			int nametaken = 0;
-			int n;
-			while(choosingname) {
-				write(clisock, username.c_str(), username.length());
-				char buffer[MAXLINE];
-				n = read(clisock, buffer, MAXLINE);
-				for (int i=0; i<MAX_CLIENTS; i++) {
-					if (clinames[i] == buffer) {
-						nametaken = 1;
-						break;
-					}
-				}
-				if (!nametaken) {
-					clinames[cli_index].assign(buffer,n);
-						clinames[cli_index].erase(std::remove(clinames[cli_index].begin(), clinames[cli_index].end(), '\n'), clinames[cli_index].end());
-						clinames[cli_index].erase(std::remove(clinames[cli_index].begin(), clinames[cli_index].end(), ' '), clinames[cli_index].end());
-						clinames[cli_index].erase(std::remove(clinames[cli_index].begin(), clinames[cli_index].end(), '\r'), clinames[cli_index].end());
-					choosingname = 0;
-				}
-			}
+
+			write(clisock, username.c_str(), username.length());
 			numclients++;
 		}
 
@@ -173,6 +152,32 @@ int main(int argc, char* argv[]) {
 						numclients--;
 						continue;
 					}
+
+					//Client has to choose username
+					if (clinames[i] == "") {
+						int n;
+						int nametaken = 0;
+						char buffer[MAXLINE];
+						std::string name;
+						n = read(clifds[i], buffer, MAXLINE);
+						name.assign(buffer, n);
+						name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
+						name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+						name.erase(std::remove(name.begin(), name.end(), '\r'), name.end());
+						for (int j=0; j<MAX_CLIENTS; j++) {
+							if (name == clinames[j]) {
+								nametaken = 1;
+								break;
+							}
+						}
+						if (nametaken) {
+							write(clifds[i], username.c_str(), username.length());
+						}
+						else {
+							clinames[i] = name;
+						}
+					}
+
 
 					//Client guess of a word
 					std::string guess;
