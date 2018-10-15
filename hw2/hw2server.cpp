@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
 	std::vector<std::string> clinames(MAX_CLIENTS,"");
 	struct sockaddr_in servaddr;
 	socklen_t sockaddr_len = sizeof(servaddr);
+	std::string username = "Choose a unique username: ";
 
 
 	for(int i=0; i<MAX_CLIENTS; i++) {
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-			std::string username = "Choose a unique username: ";
+
 			int choosingname = 1;
 			int nametaken = 0;
 			int n;
@@ -240,14 +241,17 @@ int main(int argc, char* argv[]) {
 								close(clifds[j]);
 								clifds[j] = -1;
 								clinames[j] = "";
-								randomIndex = rand() % wordsList.size();
-								secretword = wordsList[randomIndex];
-								//remove the newline
-								secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
 								numclients = 0;
-								break;
 							}
 						}
+						randomIndex = rand() % wordsList.size();
+						secretword = wordsList[randomIndex];
+						//remove the newline
+						secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
+						secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
+						secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
+						std::cout << secretword << std::endl;
+						break;
 					}
 
 					std::string guessinfo;
