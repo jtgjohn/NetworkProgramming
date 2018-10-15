@@ -137,6 +137,34 @@ int main(int argc, char* argv[]) {
 
 			write(clisock, username.c_str(), username.length());
 			numclients++;
+			int n;
+			int namechosen = 0;
+			char buffer[MAXLINE];
+			std::string name;
+			while(!namechosen) {
+				int nametaken = 0;
+				n = read(clifds[cli_index], buffer, MAXLINE);
+				name.assign(buffer, n);
+				name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
+				name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+				name.erase(std::remove(name.begin(), name.end(), '\r'), name.end());
+				std::cout << name << " attempting to join\n";
+				for (int j=0; j<MAX_CLIENTS; j++) {
+					if (name == clinames[j]) {
+						nametaken = 1;
+						break;
+					}
+				}
+				if (nametaken) {
+					write(clisock, username.c_str(), username.length());
+				}
+				else {
+					clinames[cli_index] = name;
+					namechosen = 1;
+					std::cout << clinames[cli_index] << " arrived\n";
+				}
+			}
+
 		}
 
 		for (int i=0; i<MAX_CLIENTS; i++) {
@@ -153,32 +181,6 @@ int main(int argc, char* argv[]) {
 						numclients--;
 						continue;
 					}
-
-					//Client has to choose username
-					if (clinames[i] == "") {
-						int n;
-						int nametaken = 0;
-						char buffer[MAXLINE];
-						std::string name;
-						n = read(clifds[i], buffer, MAXLINE);
-						name.assign(buffer, n);
-						name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
-						name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
-						name.erase(std::remove(name.begin(), name.end(), '\r'), name.end());
-						for (int j=0; j<MAX_CLIENTS; j++) {
-							if (name == clinames[j]) {
-								nametaken = 1;
-								break;
-							}
-						}
-						if (nametaken) {
-							write(clifds[i], username.c_str(), username.length());
-						}
-						else {
-							clinames[i] = name;
-						}
-					}
-
 
 					//Client guess of a word
 					std::string guess;
@@ -250,6 +252,7 @@ int main(int argc, char* argv[]) {
 						secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
 						secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
 						std::cout << secretword << std::endl;
+						wordlen = secretword.length();
 						break;
 					}
 
