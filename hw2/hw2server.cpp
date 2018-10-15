@@ -26,6 +26,9 @@ int main(int argc, char* argv[]) {
 	socklen_t sockaddr_len = sizeof(servaddr);
 
 
+	for(int i=0; i<MAX_CLIENTS; i++) {
+		clifds[i] = -1;
+	}
 
 	memset(&servaddr, 0, sockaddr_len);
 	servaddr.sin_family = AF_INET;
@@ -69,6 +72,8 @@ int main(int argc, char* argv[]) {
 	int randomIndex = rand() % wordsList.size();
 
 	secretword = wordsList[randomIndex];
+
+	std::cout << secretword << std::endl;
 
 	std::vector<char> wordInfo;
 	int wordlen = secretword.length();
@@ -173,7 +178,7 @@ int main(int argc, char* argv[]) {
 
 
 					//get num correct
-					for (int i = 0; i < guess.size(); i++) {
+					for (int j = 0; j < guess.size(); j++) {
 						std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[i]));
 
 						if (itr != tempWord.end()) {
@@ -187,16 +192,39 @@ int main(int argc, char* argv[]) {
 
 					//Count all letters that are correctly placed
 					//get the num placed
-					for (int i = 0; i < guess.size(); i++) {
+					for (int j= 0; j < guess.size(); j++) {
 						if (tolower(guess[i]) == tolower(secretword[i])) {
 							numPlaced++;
 						}
 					}
 
+					//A client wins the game!
+					//Disconnect all clients and choose a new random word
+					if (numPlaced == wordlen) {
+						std::string winmesg = clinames[i] + " has correclty guessed the word ";
+						winmesg = winmesg + secretword + ".\n";
+						for (int j=0; j<MAX_CLIENTS; j++) {
+							if (clifds[j] != -1) {
+								write(clifds[j], winmesg.c_str(), winmesg.length());
+								close(clifds[j]);
+								clifds[j] = -1;
+								clinames[j] = "";
+								randomIndex = rand() % wordsList.size();
+								secretword = wordsList[randomIndex];
+								break;
+							}
+						}
+					}
+
 					std::string guessinfo;
-					guessinfo = "";
+					guessinfo = clinames[i] + " guessed " + guess +  ": " + std::to_string(numCorrect);
+					guessinfo = guessinfo + "letter(s) were correct and " + std::to_string(numPlaced);
+					guessinfo = guessinfo + " letter(s) were correctly placed.\n";
 
-
+					for (int j=0; j<MAX_CLIENTS; j++) {
+						if (clifds[j] != -1)
+							write(clifds[j], guessinfo.c_str(), guessinfo.length());
+					}
 				}
 			}
 		}
