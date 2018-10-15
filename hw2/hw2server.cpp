@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	for (std::string line; getline(input, line);) {
+		std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 		wordsList.push_back(line);
 	}
 
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]) {
 
 	//int wordlen = secretword.length();
 	for (int i = 0; i < wordlen; i++) {
-		wordInfo.push_back(tolower(secretword[i]));
+		wordInfo.push_back(secretword[i]);
 	}
 
 	maxfds = lsock;
@@ -184,6 +185,7 @@ int main(int argc, char* argv[]) {
 					//Client guess of a word
 					std::string guess;
 					guess.assign(buffer,n);
+					std::transform(guess.begin(), guess.end(), guess.begin(), ::tolower);
 
 					//remove the newline
 					guess.erase(std::remove(guess.begin(), guess.end(), '\n'), guess.end());
@@ -210,7 +212,7 @@ int main(int argc, char* argv[]) {
 
 					//get num correct
 					for (int j = 0; j < guess.size(); j++) {
-						std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[j]));
+						std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), guess[j]);
 
 						if (itr != tempWord.end()) {
 							int loc = std::distance(tempWord.begin(), itr);
@@ -224,7 +226,7 @@ int main(int argc, char* argv[]) {
 					//Count all letters that are correctly placed
 					//get the num placed
 					for (int j= 0; j < guess.size(); j++) {
-						if (tolower(guess[j]) == tolower(secretword[j])) {
+						if (guess[j] == secretword[j]) {
 							numPlaced++;
 						}
 					}
