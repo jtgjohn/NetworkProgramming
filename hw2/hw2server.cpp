@@ -23,10 +23,15 @@ int main(int argc, char* argv[]) {
 	int clifds[MAX_CLIENTS];
 	std::vector<std::string> clinames(MAX_CLIENTS,"");
 	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
+	socklen_t sockaddr_len = sizeof(servaddr);
+
+
+
+	memset(&servaddr, 0, sockaddr_len);
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(0);
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
 
 	std::string dictionary = argv[1];
 	std::vector<std::string> wordsList;
@@ -41,27 +46,13 @@ int main(int argc, char* argv[]) {
 		wordsList.push_back(line);
 	}
 
-	srand(servaddr.sin_port);
-	int randomIndex = rand() % wordsList.size();
-
-	secretword = wordsList[randomIndex];
-
-
-	printf("Port: %d\n",servaddr.sin_port);
-
-	std::vector<char> wordInfo;
-	int wordlen = secretword.length();
-	for (int i = 0; i < wordlen; i++) {
-		wordInfo.push_back(tolower(secretword[i]));
-	}
-
 	int lsock;
 	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
 		perror("could not create listen socket\n");
 		return 1;
 	}
 
-	if ((bind(lsock, (struct sockaddr *)&servaddr, sizeof(servaddr))) < 0) {
+	if ((bind(lsock, (struct sockaddr *)&servaddr, sockaddr_len)) < 0) {
 		perror("failed binding socket\n");
 		return 1;
 	}
@@ -70,6 +61,21 @@ int main(int argc, char* argv[]) {
 		perror("failed to open socket for listening\n");
 		return 1;
 	}
+
+	getsockname(lsock, (struct sockaddr *)&servaddr, &sockaddr_len);
+	printf("Port: %d\n",ntohs(servaddr.sin_port));
+
+	srand(servaddr.sin_port);
+	int randomIndex = rand() % wordsList.size();
+
+	secretword = wordsList[randomIndex];
+
+	std::vector<char> wordInfo;
+	int wordlen = secretword.length();
+	for (int i = 0; i < wordlen; i++) {
+		wordInfo.push_back(tolower(secretword[i]));
+	}
+
 	maxfds = lsock;
 	struct sockaddr_in cliaddr;
 	socklen_t clilen = 0;
@@ -186,6 +192,9 @@ int main(int argc, char* argv[]) {
 							numPlaced++;
 						}
 					}
+
+					std::string guessinfo;
+					guessinfo = "";
 
 
 				}
