@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
 
 					//A client wins the game!
 					//Disconnect all clients and choose a new random word
-					if (numPlaced == wordlen) {
+					if (guess == secretword) {
 						std::string winmesg = clinames[i] + " has correclty guessed the word ";
 						winmesg = winmesg + secretword + ".\n";
 						for (int j=0; j<MAX_CLIENTS; j++) {
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
 
 					std::string guessinfo;
 					guessinfo = clinames[i] + " guessed " + guess +  ": " + std::to_string(numCorrect);
-					guessinfo = guessinfo + "letter(s) were correct and " + std::to_string(numPlaced);
+					guessinfo = guessinfo + " letter(s) were correct and " + std::to_string(numPlaced);
 					guessinfo = guessinfo + " letter(s) were correctly placed.\n";
 
 					for (int j=0; j<MAX_CLIENTS; j++) {
