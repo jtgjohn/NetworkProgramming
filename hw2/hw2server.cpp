@@ -157,6 +157,9 @@ int main(int argc, char* argv[]) {
 				}
 				if (!nametaken) {
 					clinames[cli_index].assign(buffer,n);
+						clinames[cli_index].erase(std::remove(clinames[cli_index].begin(), clinames[cli_index].end(), '\n'), clinames[cli_index].end());
+						clinames[cli_index].erase(std::remove(clinames[cli_index].begin(), clinames[cli_index].end(), ' '), clinames[cli_index].end());
+						clinames[cli_index].erase(std::remove(clinames[cli_index].begin(), clinames[cli_index].end(), '\r'), clinames[cli_index].end());
 					choosingname = 0;
 				}
 			}
@@ -207,7 +210,7 @@ int main(int argc, char* argv[]) {
 
 					//get num correct
 					for (int j = 0; j < guess.size(); j++) {
-						std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[i]));
+						std::vector<char>::iterator itr = std::find(tempWord.begin(), tempWord.end(), tolower(guess[j]));
 
 						if (itr != tempWord.end()) {
 							int loc = std::distance(tempWord.begin(), itr);
@@ -221,7 +224,7 @@ int main(int argc, char* argv[]) {
 					//Count all letters that are correctly placed
 					//get the num placed
 					for (int j= 0; j < guess.size(); j++) {
-						if (tolower(guess[i]) == tolower(secretword[i])) {
+						if (tolower(guess[j]) == tolower(secretword[j])) {
 							numPlaced++;
 						}
 					}
