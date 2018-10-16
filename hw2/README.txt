@@ -5,6 +5,7 @@ Network Programming Fall 2018 Homework 2
 
 
 This homework builds a server that we can netcat into.
+It takes two arguments: the dictionary filename and the maximum word size.
 The server can hold up to 5 clients at one time. 
 When a client is connected, they are told how many other clients 
 are currently playing the game and how many letters are in the secret word.

@@ -1,5 +1,5 @@
 CFLAGS = -g -Wall
-FILES = hw2server.cpp ../unpv13e/libunp.a
+FILES = hw2server.cpp
 
 
 all: 

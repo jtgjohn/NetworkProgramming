@@ -14,7 +14,7 @@
 #define MAX_CLIENTS 5
 #define MAXLINE 1024
 
-
+//function to choose a random word based on the maximum size given by the user
 std::string getRandomWord(std::vector<std::string> &wordsList, int maxSize) {
 	int randomIndex = rand() % wordsList.size();
 
@@ -35,7 +35,7 @@ std::string getRandomWord(std::vector<std::string> &wordsList, int maxSize) {
 int main(int argc, char* argv[]) {
 
 	if (argc != 3) {
-		std::cout << "Wrong number of arguments. Please run the program like this: ./hw2server.out [ipAddress] [maxWordSize]\n";
+		std::cout << "Wrong number of arguments. Please run the program like this: ./wordguess.out [dictionary name] [maxWordSize]\n";
 		return -1;
 	}
 
