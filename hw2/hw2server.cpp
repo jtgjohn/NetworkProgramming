@@ -15,7 +15,29 @@
 #define MAXLINE 1024
 
 
+std::string getRandomWord(std::vector<std::string> &wordsList, int maxSize) {
+	int randomIndex = rand() % wordsList.size();
+
+	std::string secretword = wordsList[randomIndex];
+	//remove the newline
+	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
+	secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
+	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
+
+	if (secretword.size() > maxSize) {
+		return getRandomWord(wordsList, maxSize);
+	}else{
+		return secretword;
+	}
+} 
+
+
 int main(int argc, char* argv[]) {
+
+	if (argc != 3) {
+		std::cout << "Wrong number of arguments. Please run the program like this: ./hw2server.out [ipAddress] [maxWordSize]\n";
+		return -1;
+	}
 
 	int maxfds;
 	int numclients = 0;
@@ -38,6 +60,8 @@ int main(int argc, char* argv[]) {
 
 
 	std::string dictionary = argv[1];
+	int maxSize = atoi(argv[2]);
+
 	std::vector<std::string> wordsList;
 
 	std::ifstream input(dictionary.c_str());
@@ -71,13 +95,8 @@ int main(int argc, char* argv[]) {
 	printf("Port: %d\n",ntohs(servaddr.sin_port));
 
 	srand(servaddr.sin_port);
-	int randomIndex = rand() % wordsList.size();
 
-	secretword = wordsList[randomIndex];
-	//remove the newline
-	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
-	secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
-	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
+	secretword = getRandomWord(wordsList, maxSize);
 	
 	std::cout << secretword << std::endl;
 
@@ -243,20 +262,17 @@ int main(int argc, char* argv[]) {
 								numclients = 0;
 							}
 						}
-						randomIndex = rand() % wordsList.size();
-						secretword = wordsList[randomIndex];
-						//remove the newline
-						secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
-						secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
-						secretword.erase(std::remove(secretword.begin(), secretword.end(), '\r'), secretword.end());
-						std::cout << secretword << std::endl;
+						secretword = getRandomWord(wordsList, maxSize);
 
-						std::vector<char> wordInfo;
+						std::cout << secretword << std::endl;
+						wordlen = secretword.length();
+
+						wordInfo.clear();
 						for (int k = 0; k < wordlen; k++) {
 							wordInfo.push_back(secretword[k]);
 						}
 
-						wordlen = secretword.length();
+						
 						break;
 					}
 
