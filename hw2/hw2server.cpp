@@ -27,16 +27,19 @@ int main(int argc, char* argv[]) {
 	std::string username = "Choose a unique username: ";
 
 
+	//initialize array of client fds 
+	//-1 represents an empty spot
 	for(int i=0; i<MAX_CLIENTS; i++) {
 		clifds[i] = -1;
 	}
 
+	//create the server address
 	memset(&servaddr, 0, sockaddr_len);
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(0);
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-
+	//create a vector of all words in the dictionary
 	std::string dictionary = argv[1];
 	std::vector<std::string> wordsList;
 
@@ -51,29 +54,35 @@ int main(int argc, char* argv[]) {
 		wordsList.push_back(line);
 	}
 
+	//open the socket 
 	int lsock;
 	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
 		perror("could not create listen socket\n");
 		return 1;
 	}
 
+	//bind the socket
 	if ((bind(lsock, (struct sockaddr *)&servaddr, sockaddr_len)) < 0) {
 		perror("failed binding socket\n");
 		return 1;
 	}
 
+	//open socket for listening
 	if (listen(lsock, 10) < 0) {
 		perror("failed to open socket for listening\n");
 		return 1;
 	}
 
+	//print out new port for the socket
 	getsockname(lsock, (struct sockaddr *)&servaddr, &sockaddr_len);
 	printf("Port: %d\n",ntohs(servaddr.sin_port));
 
+	//choose a random word from the dictionary
 	srand(servaddr.sin_port);
 	int randomIndex = rand() % wordsList.size();
 
 	secretword = wordsList[randomIndex];
+
 	//remove the newline
 	secretword.erase(std::remove(secretword.begin(), secretword.end(), '\n'), secretword.end());
 	secretword.erase(std::remove(secretword.begin(), secretword.end(), ' '), secretword.end());
@@ -84,12 +93,13 @@ int main(int argc, char* argv[]) {
 	std::vector<char> wordInfo;
 
 	int wordlen =0;
-
+	//find the length of the word
 	while(secretword.c_str()[wordlen] !='\0')
 	{
 		wordlen++;
 	}
 	
+	//create a vector of the secret word
 	for (int i = 0; i < wordlen; i++) {
 		wordInfo.push_back(secretword[i]);
 	}
@@ -102,11 +112,13 @@ int main(int argc, char* argv[]) {
 	while(1) {
 		FD_ZERO(&rset);
 
+		//if we can take more clients, add listen socket to rset
 		if (numclients < MAX_CLIENTS) {
 			FD_SET(lsock, &rset);
 			maxfds = lsock;
 		}
 
+		//add all connected clients to rset
 		for(int i=0; i < MAX_CLIENTS; i++) {
 			if (clifds[i] != -1) {
 				FD_SET(clifds[i], &rset);
@@ -115,8 +127,9 @@ int main(int argc, char* argv[]) {
 		}
 
 		maxfds++;
-		select(maxfds, &rset, NULL, NULL, NULL);
+		select(maxfds, &rset, NULL, NULL, NULL); //select call to find changed fds
 
+		//if listen fd has changed, a new client is trying to connect
 		if (numclients < MAX_CLIENTS && FD_ISSET(lsock, &rset)) {
 			int clisock;
 			if ((clisock = accept(lsock, (struct sockaddr *)&cliaddr, &clilen )) < 0) {
@@ -124,6 +137,7 @@ int main(int argc, char* argv[]) {
 				return 1;
 			}
 
+			//find an empty spot in array to store client fd
 			int cli_index;
 			for (int i=0; i<MAX_CLIENTS; i++) {
 				if (clifds[i] == -1) {
@@ -134,9 +148,10 @@ int main(int argc, char* argv[]) {
 			}
 
 
-
+			//the new client must choose a new username
+			//if they choose a username that is already taken, resend 
+			//instructions to choose a username
 			write(clisock, username.c_str(), username.length());
-			numclients++;
 			int n;
 			int namechosen = 0;
 			char buffer[MAXLINE];
@@ -163,13 +178,17 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-			std::string instructions = "Guess a word with " + std::to_string(wordlen) + " letters.\n";
+			//send amount of letters to the client.
+			std::string instructions = "There are " + std::to_string(numclients) + " clients currently playing.\n";
+			instructions = instructions + "The secret word has " + std::to_string(wordlen) + " letters.\n";
 			write(clisock, instructions.c_str(), instructions.length());
+			numclients++;
 		}
 
+		//iterate through all client fds to see which have changed
 		for (int i=0; i<MAX_CLIENTS; i++) {
 			if (clifds[i] != -1)  {
-				if (FD_ISSET(clifds[i], &rset)) {
+				if (FD_ISSET(clifds[i], &rset)) { //if a given fd has changed
 					char buffer[MAXLINE];
 					int n;
 
@@ -194,7 +213,7 @@ int main(int argc, char* argv[]) {
 					//but do not disconnect the client
 					if (guess.length() != secretword.length()) {
 						std::string errmesg;
-						errmesg = "You must guess a word with " + std::to_string(wordlen) + " characters\n";
+						errmesg = "You must guess a word with " + std::to_string(wordlen) + " letters\n";
 						write(clifds[i],  errmesg.c_str(), errmesg.length());
 						continue;
 					}
@@ -260,6 +279,7 @@ int main(int argc, char* argv[]) {
 						break;
 					}
 
+					//send information to all clients when one client makes a guess.
 					std::string guessinfo;
 					guessinfo = clinames[i] + " guessed " + guess +  ": " + std::to_string(numCorrect);
 					guessinfo = guessinfo + " letter(s) were correct and " + std::to_string(numPlaced);
