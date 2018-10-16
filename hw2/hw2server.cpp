@@ -148,7 +148,6 @@ int main(int argc, char* argv[]) {
 				name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
 				name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
 				name.erase(std::remove(name.begin(), name.end(), '\r'), name.end());
-				std::cout << name << " attempting to join\n";
 				for (int j=0; j<MAX_CLIENTS; j++) {
 					if (name == clinames[j]) {
 						nametaken = 1;
@@ -161,10 +160,11 @@ int main(int argc, char* argv[]) {
 				else {
 					clinames[cli_index] = name;
 					namechosen = 1;
-					std::cout << clinames[cli_index] << " arrived\n";
 				}
 			}
 
+			std::string instructions = "Guess a word with " + std::to_string(wordlen) + " letters.\n";
+			write(clisock, instructions.c_str(), instructions.length());
 		}
 
 		for (int i=0; i<MAX_CLIENTS; i++) {
@@ -259,8 +259,6 @@ int main(int argc, char* argv[]) {
 						wordlen = secretword.length();
 						break;
 					}
-
-					std::cout << numCorrect << std::endl;
 
 					std::string guessinfo;
 					guessinfo = clinames[i] + " guessed " + guess +  ": " + std::to_string(numCorrect);
