@@ -273,6 +273,47 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "PART") {
+					if (command_list.size() > 1) {
+						if (channels.count(command_list[1]) == 0) { //channel does not exist
+							message = "You are not currently in channel " + command_list[1] + ".\n";
+						} else { //channel exists
+
+							int in_channel = channels[command_list[1]].erase(usernames[i]);
+
+							if (in_channel) {
+								std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
+								message = command_list[1] + "> " + usernames[i] + " left the channel.\n";
+								for (;itr != channels[command_list[1]].end(); ++itr) {
+									for (int j=0; j<usernames.size(); j++) {
+										if (usernames[j] == *itr) {
+											write(clifds[j], message.c_str(), message.length());
+											break;
+										}
+									}
+ 								}
+							} else {
+								message = "You are not currently in " + command_list[1] + ".\n";
+							}
+						}
+						write(clifds[i], message.c_str(), message.length());
+					} else { //remove them from all channels
+						std::unordered_map<std::string, std::unordered_set<std::string> >::iterator itr = channels.begin();
+						for(;itr != channels.end(); ++itr) {
+							if ((itr->second).erase(usernames[i]) == 1) {
+								std::unordered_set<std::string>::iterator itr2 = (itr->second).begin();
+								message = itr->first + "> " + usernames[i] + " left the channel.\n";
+								for (;itr2 != (itr->second).end(); ++itr2) {
+									for (int j=0; j<usernames.size(); j++) {
+										if (usernames[j] == *itr2) {
+											write(clifds[j], message.c_str(), message.length());
+											break;
+										}
+									}
+								}
+								write(clifds[i], message.c_str(), message.length());
+							}
+						}
+					}
 
 				} else if (command == "OPERATOR") {
 					if (password_set) {
@@ -289,6 +330,11 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "KICK") {
+					if (command_list.size() < 3) {
+						message = "invalid KICK command.\n";
+					} else {
+
+					}
 
 				} else if (command == "PRIVMSG") {
 
