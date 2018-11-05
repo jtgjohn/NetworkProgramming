@@ -10,8 +10,8 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <algorithm>
-//#include <unordered_map>
-//#include <unordered_set>
+#include <map>
+#include <set>
 
 #define MAXLINE 1024
 
@@ -50,8 +50,8 @@ int main(int argc, char* argv[]) {
 	socklen_t sockaddr_len = sizeof(servaddr);
 	std::vector<int> clifds;
 	std::vector<std::string> usernames;
-	//std::unordered_map<std::string, std::vector<std::string> > channels;
-	//std::unordered_map<std::string, std::vector<std::string> > user_channels;
+	std::map<std::string, std::vector<std::string> > channels;
+	std::map<std::string, std::vector<std::string> > user_channels;
 	int numclients = 0;
 	int password_set = 0;
 	std::string password;
