@@ -244,13 +244,15 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
+					write(clifds[i], message.c_str(), message.length());
+
 				} else if (command == "JOIN") {
 
 				} else if (command == "PART") {
 
 				} else if (command == "OPERATOR") {
 					if (password_set) {
-						if (command_list.size() > 1 && command_list[1] = password) {
+						if (command_list.size() > 1 && command_list[1] == password) {
 							operators.push_back(usernames[i]);
 							message = "OPERATOR status bestowed.\n";
 						} else {
