@@ -333,8 +333,29 @@ int main(int argc, char* argv[]) {
 					if (command_list.size() < 3) {
 						message = "invalid KICK command.\n";
 					} else {
-
+						if (operators.count(usernames[i]) == 1) {
+							if (channels.count(command_list[1]) == 1) { //if it is a valid channel
+								//if the user is actually in the specified channel
+								if (channels[command_list[1]].count(command_list[2]) == 1) {
+									message = command_list[1] + "> " + command_list[2] + " has been kicked from the channel.\n";
+									std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
+									for (; itr != channels[command_list[1]].end(); ++itr) {
+										for (int j=0; j<usernames.size(); j++) {
+											if (*itr == usernames[j] && usernames[i] != usernames[j]) {
+												write(clifds[j], message.c_str(), message.length());
+												break;
+											}
+										}
+									}
+									channels[command_list[1]].erase(command_list[2]);
+								}
+							}
+						} else { // current user is not an operator
+							message = "You must be an operator to kick another user.\n";
+						}
 					}
+
+					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "PRIVMSG") {
 
