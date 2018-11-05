@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
 	socklen_t sockaddr_len = sizeof(servaddr);
 	std::vector<int> clifds;
 	std::vector<std::string> usernames;
-	std::unordered_map<std::string, std::vector<std::string> > channels;
-	std::unordered_map<std::string, std::vector<std::string> > user_channels;
+	std::unordered_map<std::string, std::unordered_set<std::string> > channels;
+	std::unordered_map<std::string, std::unordered_set<std::string> > user_channels;
 	int numclients = 0;
 	int password_set = 0;
 	std::string password;
@@ -247,6 +247,30 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "JOIN") {
+					if (command_list.size() < 2) {
+						message = "Invalid JOIN command.\n";
+					} else { //Valid join command
+						if (count(command_list[1]) == 0) { //channel doesnt exist, create it
+							std::unordered_set<std::string> emptyset;
+							emptyset.insert(command_list[1]);
+							channels[command_list[1]] = emptyset;
+						} else {
+							std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
+							message = command_list[1] + "> "  +usernames[i] + " joined the channel.\n";
+							for (; itr != channels[command_list[1]].end(); ++itr) {
+								for (int j=0; j<usernames.size(); j++) {
+									if (usernames[j] == *itr) {
+										write(clifds[j], message.c_str(), message.length());
+										break;
+									}
+								}
+							}
+							channels[command_list[1]].insert(usernames[i]);
+						}
+						message = "Joined channel " + command_list[1] + ".\n";
+					}
+
+					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "PART") {
 
