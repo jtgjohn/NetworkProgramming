@@ -226,23 +226,22 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "LIST") {
-					int channel_list = 0;
+					int list_channels = 1;
 					std::string channel;
 
-					if (command_list.size() < 2) {
-						channel_list = 1;
-					} else {
+					if (command_list.size() > 1) {
             //iterate through channels and compare each to command_list[1], if equal set channel
             std::map<std::string, std::vector<std::string> >::iterator it = channels.begin();
 						while (it != channels.end()) {
               if (it->first == command_list[i]) {
                 channel = command_list[i];
+                list_channels = 0;
               }
               it++;
             }
 					}
 
-					if (channel_list) {
+					if (list_channels) {
 						message = "There are currently " + " channels.\n";
 						for() {
 							message += "* " + /*channel*/ + "\n";
