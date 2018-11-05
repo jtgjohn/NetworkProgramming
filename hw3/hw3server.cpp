@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
 	std::string message;
 	int maxfds;
   std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
+  std::regex usrAllowed("[a-zA-Z][_0-9a-zA-Z]*");
 
   if (argc > 1) {
     std::string passInput = argv[1];
@@ -194,6 +195,10 @@ int main(int argc, char* argv[]) {
 								break;
 							}
 						}
+
+            if (!(regex_match(command_list[1], usrAllowed))) {
+              invalid_username = 1;
+            }
 
 						if (invalid_username) {
 							message = "Invalid username.\n";
