@@ -13,6 +13,33 @@
 #include <unordered_map>
 #include <unordered_set>
 
+std::vector<std::string> parser(std::string toParse) {
+
+  std::vector<std::string> parsed;
+
+  std::string toAdd = "";
+
+  for (int i = 0; i < toParse.size(); i++) {
+    if (!(isspace(toParse.at(i)))) {
+      toAdd += toParse.at(i);
+    }else{
+      parsed.push_back(toAdd);
+      toAdd = "";
+    }
+  }
+  parsed.push_back(toAdd);
+
+  //clease the vector
+  for (int i = 0; i < parsed.size(); i++) {
+    if (parsed[i] == "") {
+      parsed.erase(parsed.begin() + i);
+      i--;
+    }
+  }
+
+  return parsed;
+
+}
 
 
 
