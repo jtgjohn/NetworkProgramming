@@ -221,8 +221,19 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "LIST") {
+					int channel_list = 0;
+					std::string channel;
+
 					if (command_list.size() < 2) {
-						message = "There are currently ";
+						channel_list = 1;
+					} else {
+						for ()
+					}
+
+					if (channel_list) {
+						message = "There are currently " + " channels.\n";
+					} else {
+						message = "There are currently " + " members.\n";
 					}
 
 
