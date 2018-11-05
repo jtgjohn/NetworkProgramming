@@ -242,14 +242,18 @@ int main(int argc, char* argv[]) {
 					}
 
 					if (list_channels) {
+            std::map<std::string, std::vector<std::string> >::iterator it = channels.begin();
 						message = "There are currently " + " channels.\n";
-						for() {
-							message += "* " + /*channel*/ + "\n";
+						while (it != channels.end()) {
+							message += "* " + it->first + "\n";
+              it++;
 						}
 					} else {
+            std::map<std::string, std::vector<std::string> >::iterator it = channels.find(command_list[i]);
+            std::vector<std::string> tempUsers = it->second;
 						message = "There are currently " + " members.\n" + channel + "members:";
-						for() {
-							message += " " + /*username*/;
+						for(int k = 0; k < tempUsers.size(); k++) {
+							message += " " + tempUsers[k];
 						}
 					}
 
