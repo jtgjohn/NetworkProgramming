@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
       password = passInput.substr(11, passInput.size());
 
       //regex check the password
-      if ((regex_match(password, pwdAllowed))) {
+      if ((regex_match(password, pwdAllowed)) && password.length() < 21) {
         password_set = 1;
       }
     }
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
 							}
 						}
 
-            if (!(regex_match(command_list[1], usrAllowed))) {
+            if (!(regex_match(command_list[1], usrAllowed)) || command_list[1].length() > 20) {
               invalid_username = 1;
             }
 
