@@ -1,8 +1,8 @@
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -std=c++11
 FILES = hw3server.cpp
 
 
-all: 
+all:
 	clang++ $(CFLAGS) $(FILES) -o hw3.out
 
 debug:

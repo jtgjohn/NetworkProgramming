@@ -10,6 +10,8 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <algorithm>
+#include <map>
+#include <regex>
 //#include <unordered_map>
 //#include <unordered_set>
 
@@ -57,11 +59,28 @@ int main(int argc, char* argv[]) {
 	std::string password;
 	std::string message;
 	int maxfds;
+  std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
 
-	if (argc > 1) {
-		password = argv[1]; //change this to take out flag
-		password_set = 1;
-	}
+  if (argc > 1) {
+    std::string passInput = argv[1];
+    if (passInput.find("--opt-pass=") == 0) {
+      password = passInput.substr(11, passInput.size());
+
+      //regex check the password
+      if (!(regex_match(password, pwdAllowed))) {
+        std::cout << "Password is not Allowed" << std::endl;
+      }else{
+        password_set = 1;
+      }
+
+      //std::cout << password << std::endl;
+
+    }else{
+      std::cout << "Invalid Flag" << std::endl;
+    }
+    //password = argv[1]; //change this to take out flag
+    //password_set = 1;
+  }
 
 
 
@@ -75,7 +94,7 @@ int main(int argc, char* argv[]) {
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 
-	//open the socket 
+	//open the socket
 	int lsock;
 	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
 		perror("could not create listen socket\n");
