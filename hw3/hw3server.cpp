@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
 	int maxfds;
   std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::regex usrAllowed("[a-zA-Z][_0-9a-zA-Z]*");
+  std::vector<std::string> operators;
 
   if (argc > 1) {
     std::string passInput = argv[1];
@@ -67,25 +68,11 @@ int main(int argc, char* argv[]) {
       password = passInput.substr(11, passInput.size());
 
       //regex check the password
-      if (!(regex_match(password, pwdAllowed))) {
-        std::cout << "Password is not Allowed" << std::endl;
-      }else{
+      if ((regex_match(password, pwdAllowed))) {
         password_set = 1;
       }
-
-      //std::cout << password << std::endl;
-
-    }else{
-      std::cout << "Invalid Flag" << std::endl;
     }
-    //password = argv[1]; //change this to take out flag
-    //password_set = 1;
   }
-
-
-
-
-
 
 	//create the server address
 	memset(&servaddr, 0, sockaddr_len);
@@ -253,12 +240,23 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
-
 				} else if (command == "JOIN") {
 
 				} else if (command == "PART") {
 
 				} else if (command == "OPERATOR") {
+					if (password_set) {
+						if (command_list.size() > 1 && command_list[1] = password) {
+							operators.push_back(usernames[i]);
+							message = "OPERATOR status bestowed.\n";
+						} else {
+							message = "Invalid OPERATOR command.\n";
+						}
+					} else {
+						message = "No operators allowed.\n";
+					}
+
+					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "KICK") {
 
