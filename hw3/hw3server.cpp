@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#define MAXLINE 1024
+
 std::vector<std::string> parser(std::string toParse) {
 
   std::vector<std::string> parsed;
@@ -53,6 +55,8 @@ int main(int argc, char* argv[]) {
 	int numclients = 0;
 	int password_set = 0;
 	std::string password;
+	std::string message;
+	int maxfds;
 
 	if (argc > 1) {
 		password = argv[1]; //change this to take out flag
@@ -109,7 +113,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		//add all connected clients to rset
-		for(int i=0; i < clifds.length(); i++) {
+		for(int i=0; i < clifds.size(); i++) {
 			FD_SET(clifds[i], &rset);
 			maxfds = std::max(maxfds, clifds[i]);
 		}
@@ -133,9 +137,9 @@ int main(int argc, char* argv[]) {
 		}
 
 
-		for (int i=0; i<clifds.length(); i++) {
+		for (int i=0; i<clifds.size(); i++) {
 
-			if(FD_ISSET(clifds[i])) {
+			if(FD_ISSET(clifds[i], &rset)) {
 
 				char buffer[MAXLINE];
 				int n;
@@ -143,8 +147,8 @@ int main(int argc, char* argv[]) {
 				//If a client disconnects, remove thier info and username, close socket.
 				if ((n =read(clifds[i], buffer, MAXLINE)) == 0) {
 					close(clifds[i]);
-					clifds[i] = -1;
-					clinames[i] = "";
+					clifds.erase(clifds.begin() + i);
+					usernames.erase(usernames.begin() + i);
 					numclients--;
 					continue;
 				}
@@ -152,16 +156,25 @@ int main(int argc, char* argv[]) {
 				//Client guess of a word
 				std::string input;
 				input.assign(buffer,n);
+				std::vector<std::string> command_list = parser(input);
+				std::string command = command_list[0];
 
 				//if no command has been entered yet
 				if(usernames[i] == "") {
 					if (command == "USER") {
 
 					} else {
+						message = "Invalid command, please identify yourself with USER.\n";
+						write(clifds[i], message.c_str(), message.length());
+
+						close(clifds[i]);
+						clifds.erase(clifds.begin() + i);
+						usernames.erase(usernames.begin() + i);
+
 
 					}
 				} else if(command == "USER") {
-					std::string message = "You cannot change your username.\n";
+					message = "You cannot change your username after it is set.\n";
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "LIST") {
