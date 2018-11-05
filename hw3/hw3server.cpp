@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
 
 					if (list_channels) {
             std::map<std::string, std::vector<std::string> >::iterator it = channels.begin();
-						message = "There are currently " + " channels.\n";
+						message = "There are currently " + std::to_string(channels.size()) + " channels.\n";
 						while (it != channels.end()) {
 							message += "* " + it->first + "\n";
               it++;
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
 					} else {
             std::map<std::string, std::vector<std::string> >::iterator it = channels.find(command_list[i]);
             std::vector<std::string> tempUsers = it->second;
-						message = "There are currently " + " members.\n" + channel + "members:";
+						message = "There are currently " + std::to_string(tempUsers.size()) + " members.\n" + channel + "members:";
 						for(int k = 0; k < tempUsers.size(); k++) {
 							message += " " + tempUsers[k];
 						}
