@@ -11,9 +11,8 @@
 #include <string.h>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <regex>
-//#include <unordered_map>
-//#include <unordered_set>
 
 #define MAXLINE 1024
 
@@ -52,8 +51,8 @@ int main(int argc, char* argv[]) {
 	socklen_t sockaddr_len = sizeof(servaddr);
 	std::vector<int> clifds;
 	std::vector<std::string> usernames;
-	//std::unordered_map<std::string, std::vector<std::string> > channels;
-	//std::unordered_map<std::string, std::vector<std::string> > user_channels;
+	std::map<std::string, std::vector<std::string> > channels;
+	std::map<std::string, std::vector<std::string> > user_channels;
 	int numclients = 0;
 	int password_set = 0;
 	std::string password;
@@ -151,6 +150,7 @@ int main(int argc, char* argv[]) {
 			//add the new client
 			clifds.push_back(clisock);
 			usernames.push_back(""); //placeholder while we wait for username to be selected
+			numclients++;
 
 
 		}
@@ -182,6 +182,22 @@ int main(int argc, char* argv[]) {
 				//if no command has been entered yet
 				if(usernames[i] == "") {
 					if (command == "USER") {
+						int invalid_username = 0;
+						if (command_list.size() < 2) {
+							invalid_username = 1;
+						}
+						for (int j=0; j<usernames.size(); j++) {
+							if (usernames[j] == command_list[1]) {
+								message = "Username already taken, please select a new one.\n";
+								write(clifds[i], message.c_str(), message.length());
+								invalid_username = 1;
+							}
+						}
+						if (invalid_username) {
+
+						}
+						usernames[i] = command_list[1];
+						message = "Welcome, " + command_list[1] + ".\n";
 
 					} else {
 						message = "Invalid command, please identify yourself with USER.\n";
@@ -200,6 +216,10 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "LIST") {
+					if (command_list.size < 2) {
+						message = "There are currently ";
+					}
+
 
 				} else if (command == "JOIN") {
 
