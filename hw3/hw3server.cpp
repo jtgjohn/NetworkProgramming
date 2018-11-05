@@ -183,19 +183,24 @@ int main(int argc, char* argv[]) {
 				if(usernames[i] == "") {
 					if (command == "USER") {
 						int invalid_username = 0;
+
 						if (command_list.size() < 2) {
 							invalid_username = 1;
 						}
+
 						for (int j=0; j<usernames.size(); j++) {
 							if (usernames[j] == command_list[1]) {
-								message = "Username already taken, please select a new one.\n";
-								write(clifds[i], message.c_str(), message.length());
 								invalid_username = 1;
+								break;
 							}
 						}
-						if (invalid_username) {
 
+						if (invalid_username) {
+							message = "Invalid username.\n";
+							write(clifds[i], message.c_str(), message.length());
+							continue;
 						}
+
 						usernames[i] = command_list[1];
 						message = "Welcome, " + command_list[1] + ".\n";
 
@@ -216,7 +221,7 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "LIST") {
-					if (command_list.size < 2) {
+					if (command_list.size() < 2) {
 						message = "There are currently ";
 					}
 
