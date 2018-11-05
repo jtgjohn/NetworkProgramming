@@ -10,8 +10,8 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <algorithm>
-#include <map>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <regex>
 
 #define MAXLINE 1024
@@ -51,8 +51,8 @@ int main(int argc, char* argv[]) {
 	socklen_t sockaddr_len = sizeof(servaddr);
 	std::vector<int> clifds;
 	std::vector<std::string> usernames;
-	std::map<std::string, std::vector<std::string> > channels;
-	std::map<std::string, std::vector<std::string> > user_channels;
+	std::unordered_map<std::string, std::vector<std::string> > channels;
+	std::unordered_map<std::string, std::vector<std::string> > user_channels;
 	int numclients = 0;
 	int password_set = 0;
 	std::string password;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 	int maxfds;
   std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::regex usrAllowed("[a-zA-Z][_0-9a-zA-Z]*");
-  std::vector<std::string> operators;
+  std::unordered_set<std::string> operators;
 
   if (argc > 1) {
     std::string passInput = argv[1];
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
 
 					if (command_list.size() > 1) {
             //iterate through channels and compare each to command_list[1], if equal set channel
-            std::map<std::string, std::vector<std::string> >::iterator it = channels.begin();
+            std::unordered_map<std::string, std::vector<std::string> >::iterator it = channels.begin();
 						while (it != channels.end()) {
               if (it->first == command_list[i]) {
                 channel = command_list[i];
@@ -229,14 +229,14 @@ int main(int argc, char* argv[]) {
 					}
 
 					if (list_channels) {
-            std::map<std::string, std::vector<std::string> >::iterator it = channels.begin();
+            std::unordered_map<std::string, std::vector<std::string> >::iterator it = channels.begin();
 						message = "There are currently " + std::to_string(channels.size()) + " channels.\n";
 						while (it != channels.end()) {
 							message += "* " + it->first + "\n";
               it++;
 						}
 					} else {
-            std::map<std::string, std::vector<std::string> >::iterator it = channels.find(command_list[i]);
+            std::unordered_map<std::string, std::vector<std::string> >::iterator it = channels.find(command_list[i]);
             std::vector<std::string> tempUsers = it->second;
 						message = "There are currently " + std::to_string(tempUsers.size()) + " members.\n" + channel + "members:";
 						for(int k = 0; k < tempUsers.size(); k++) {
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
 				} else if (command == "OPERATOR") {
 					if (password_set) {
 						if (command_list.size() > 1 && command_list[1] == password) {
-							operators.push_back(usernames[i]);
+							operators.insert(usernames[i]);
 							message = "OPERATOR status bestowed.\n";
 						} else {
 							message = "Invalid OPERATOR command.\n";
