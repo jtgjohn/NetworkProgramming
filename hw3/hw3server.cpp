@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
       password = passInput.substr(11, passInput.size());
 
       //regex check the password
-      if ((regex_match(password, pwdAllowed))) {
+      if ((regex_match(password, pwdAllowed)) && password.length() < 21) {
         password_set = 1;
       }
     }
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
 							}
 						}
 
-            if (!(regex_match(command_list[1], usrAllowed))) {
+            if (!(regex_match(command_list[1], usrAllowed)) || command_list[1].length() > 20) {
               invalid_username = 1;
             }
 
@@ -244,13 +244,15 @@ int main(int argc, char* argv[]) {
 						}
 					}
 
+					write(clifds[i], message.c_str(), message.length());
+
 				} else if (command == "JOIN") {
 
 				} else if (command == "PART") {
 
 				} else if (command == "OPERATOR") {
 					if (password_set) {
-						if (command_list.size() > 1 && command_list[1] = password) {
+						if (command_list.size() > 1 && command_list[1] == password) {
 							operators.push_back(usernames[i]);
 							message = "OPERATOR status bestowed.\n";
 						} else {
