@@ -232,7 +232,14 @@ int main(int argc, char* argv[]) {
 					if (command_list.size() < 2) {
 						channel_list = 1;
 					} else {
-						for ()
+            //iterate through channels and compare each to command_list[1], if equal set channel
+            std::map<std::string, std::vector<std::string> >::iterator it = channels.begin();
+						while (it != channels.end()) {
+              if (it->first == command_list[i]) {
+                channel = command_list[i];
+              }
+              it++;
+            }
 					}
 
 					if (channel_list) {
