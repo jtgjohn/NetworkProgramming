@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
 
 					if (command_list.size() > 1) {
             //iterate through channels and compare each to command_list[1], if equal set channel
-            std::unordered_map<std::string, std::vector<std::string> >::iterator it = channels.begin();
+            std::unordered_map<std::string, std::unordered_set<std::string> >::iterator it = channels.begin();
 						while (it != channels.end()) {
               if (it->first == command_list[i]) {
                 channel = command_list[i];
@@ -229,19 +229,19 @@ int main(int argc, char* argv[]) {
 					}
 
 					if (list_channels) {
-            std::unordered_map<std::string, std::vector<std::string> >::iterator it = channels.begin();
+            std::unordered_map<std::string, std::unordered_set<std::string> >::iterator it = channels.begin();
 						message = "There are currently " + std::to_string(channels.size()) + " channels.\n";
 						while (it != channels.end()) {
 							message += "* " + it->first + "\n";
               it++;
 						}
 					} else {
-            std::unordered_map<std::string, std::vector<std::string> >::iterator it = channels.find(command_list[i]);
-            std::vector<std::string> tempUsers = it->second;
-						message = "There are currently " + std::to_string(tempUsers.size()) + " members.\n" + channel + "members:";
-						for(int k = 0; k < tempUsers.size(); k++) {
-							message += " " + tempUsers[k];
+						message = "There are currently " + std::to_string(channels[command_list[1]].size()) + " members.\n" + channel + "members:";
+						std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
+						for(; itr != channels[command_list[1]].end(); ++itr) {
+							message += " " + *itr;
 						}
+						message += "\n";
 					}
 
 					write(clifds[i], message.c_str(), message.length());
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
 					if (command_list.size() < 2) {
 						message = "Invalid JOIN command.\n";
 					} else { //Valid join command
-						if (count(command_list[1]) == 0) { //channel doesnt exist, create it
+						if (channels.count(command_list[1]) == 0) { //channel doesnt exist, create it
 							std::unordered_set<std::string> emptyset;
 							emptyset.insert(command_list[1]);
 							channels[command_list[1]] = emptyset;
