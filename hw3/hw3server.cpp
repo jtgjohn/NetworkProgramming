@@ -237,8 +237,14 @@ int main(int argc, char* argv[]) {
 
 					if (channel_list) {
 						message = "There are currently " + " channels.\n";
+						for() {
+							message += "* " + /*channel*/ + "\n";
+						}
 					} else {
-						message = "There are currently " + " members.\n";
+						message = "There are currently " + " members.\n" + channel + "members:";
+						for() {
+							message += " " + /*username*/;
+						}
 					}
 
 
