@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
               it++;
 						}
 					} else {
-						message = "There are currently " + std::to_string(channels[command_list[1]].size()) + " members.\n" + channel + "members: ";
+						message = "There are currently " + std::to_string(channels[command_list[1]].size()) + " members.\n" + channel + " members:";
 						std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
 						for(; itr != channels[command_list[1]].end(); ++itr) {
 							message += " " + *itr;
