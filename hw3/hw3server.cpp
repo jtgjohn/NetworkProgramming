@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
 	int maxfds;
   std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::regex usrAllowed("[a-zA-Z][_0-9a-zA-Z]*");
+  std::regex chnlAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::unordered_set<std::string> operators;
 
   if (argc > 1) {
@@ -251,7 +252,7 @@ int main(int argc, char* argv[]) {
 						message = "Invalid JOIN command.\n";
 					} else { //Valid join command
 						if (channels.count(command_list[1]) == 0) { //channel doesnt exist, create it
-							if (command_list[1]) {//CHECK REGEX
+							if ((regex_match(command_list[1], chnlAllowed)) && command_list[1].size() < 22) {//CHECK REGEX
 								std::unordered_set<std::string> emptyset;
 								emptyset.insert(command_list[1]);
 								channels[command_list[1]] = emptyset;
