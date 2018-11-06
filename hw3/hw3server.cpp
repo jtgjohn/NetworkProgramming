@@ -16,27 +16,36 @@
 
 #define MAXLINE 1024
 
+//function to parse input sent to the server
 std::vector<std::string> parser(std::string toParse) {
 
+  //vector to hold the parse message
   std::vector<std::string> parsed;
 
+  //temp variable to hold parts of the message that will be added to toParse
   std::string toAdd = "";
 
+  //go through the message one char at a time
   for (int i = 0; i < toParse.size(); i++) {
+    //if the character isn't a space, add the char to toAdd
     if (!(isspace(toParse.at(i)))) {
       toAdd += toParse.at(i);
+    //else the char is a space, add the word to parsed and reset toAdd
     }else{
       parsed.push_back(toAdd);
       toAdd = "";
     }
+    //if the size of parse is two and the command is PRIVMSG
     if (parsed.size() == 2 && parsed[0] == "PRIVMSG") {
+      //then the rest of the message is the private message
       toAdd = toParse.substr(i + 1, toParse.size());
       break;
     }
   }
+  //add the last word
   parsed.push_back(toAdd);
 
-  //clease the vector
+  //get rid of any extra white space (in case the user enters multiple spaces between words)
   for (int i = 0; i < parsed.size(); i++) {
     if (parsed[i] == "") {
       parsed.erase(parsed.begin() + i);
@@ -44,6 +53,7 @@ std::vector<std::string> parser(std::string toParse) {
     }
   }
 
+  //return the parsed vecotr
   return parsed;
 
 }
@@ -51,24 +61,36 @@ std::vector<std::string> parser(std::string toParse) {
 
 
 int main(int argc, char* argv[]) {
+  //server address and length
 	struct sockaddr_in6 servaddr;
 	socklen_t sockaddr_len = sizeof(servaddr);
+
+  //vector for client fds
 	std::vector<int> clifds;
+  //vecotr for connected usernames
 	std::vector<std::string> usernames;
+  //map to hold channels and users in channels
 	std::unordered_map<std::string, std::unordered_set<std::string> > channels;
+  //hold the number of clients
 	int numclients = 0;
+  //see if a password is set
 	int password_set = 0;
 	std::string password;
 	std::string message;
 	int maxfds;
+  //regexs for passwords, users, and channels
   std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::regex usrAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::regex chnlAllowed("#[a-zA-Z][_0-9a-zA-Z]*");
+  //vector of operator users
   std::unordered_set<std::string> operators;
 
+  //if there's an argument
   if (argc > 1) {
     std::string passInput = argv[1];
+    //see if the argument is the password flag
     if (passInput.find("--opt-pass=") == 0) {
+      //if so, set the password
       password = passInput.substr(11, passInput.size());
 
       //regex check the password
@@ -80,13 +102,13 @@ int main(int argc, char* argv[]) {
 
 	//create the server address
 	memset(&servaddr, 0, sockaddr_len);
+  //use ipv6 for the server
 	servaddr.sin6_family = AF_INET6;
 	servaddr.sin6_port = htons(0);
-	//servaddr.sin6_addr.s6_addr = htonl(INADDR_ANY);
   servaddr.sin6_addr = in6addr_any;
 
 
-	//open the socket
+	//open the socket with ipv6
 	int lsock;
 	if ((lsock = socket(PF_INET6,SOCK_STREAM, 0)) < 0) {
 		perror("could not create listen socket\n");
@@ -99,7 +121,8 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-  //allow the ipv6 socket to also take in ipv4
+  //allow the ipv6 socket to also take in ipv4 by setting the socket option
+  //of ipv6 only to 0
   int no = 0;
   setsockopt(lsock, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&no, sizeof(no));
 
@@ -113,11 +136,13 @@ int main(int argc, char* argv[]) {
 	getsockname(lsock, (struct sockaddr *)&servaddr, &sockaddr_len);
 	printf("Port: %d\n",ntohs(servaddr.sin6_port));
 
+  //set up for the select call to take in clients
 	maxfds = lsock;
 	struct sockaddr_in cliaddr;
 	socklen_t clilen = 0;
 
 	fd_set rset;
+  //run the server
 	while(1) {
 		FD_ZERO(&rset);
 
