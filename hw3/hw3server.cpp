@@ -423,8 +423,27 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "QUIT") {
-
-					write(clifds[i], message.c_str(), message.length());
+					operators.erase(usernames[i]);
+					std::unordered_map<std::string, std::unordered_set<std::string> >::iterator itr = channels.begin();
+					for (; itr != channels.end(); ++itr) {
+						if ((itr->second).erase(usernames[i])) {
+							std::unordered_set<std::string>::iterator itr2 = (itr->second).begin();
+							message = itr->first + "> " + usernames[i] + " has quit.\n";
+							for (;itr2 != (itr->second).end(); ++itr2) {
+								for (int j=0; j<usernames.size(); j++) {
+									if (usernames[j] == *itr2) {
+										write(clifds[j], message.c_str(), message.length());
+										break;
+									}
+								}
+							}
+						}
+					}
+					close(clifds[i]);
+					clifds.erase(clifds.begin() + i);
+					usernames.erase(usernames.begin() + i);
+					numclients--;
+					i--;
 
 				} else { //INVALID COMMAND
 					message = "Invalid command.\n";
