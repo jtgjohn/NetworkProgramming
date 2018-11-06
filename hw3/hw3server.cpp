@@ -29,6 +29,10 @@ std::vector<std::string> parser(std::string toParse) {
       parsed.push_back(toAdd);
       toAdd = "";
     }
+    if (parsed.size() == 2 && parsed[0] == "PRIVMSG") {
+      toAdd = toParse.substr(i + 1, toParse.size());
+      break;
+    }
   }
   parsed.push_back(toAdd);
 
