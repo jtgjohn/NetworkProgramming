@@ -51,7 +51,7 @@ std::vector<std::string> parser(std::string toParse) {
 
 
 int main(int argc, char* argv[]) {
-	struct sockaddr_in servaddr;
+	struct sockaddr_in6 servaddr;
 	socklen_t sockaddr_len = sizeof(servaddr);
 	std::vector<int> clifds;
 	std::vector<std::string> usernames;
@@ -80,14 +80,15 @@ int main(int argc, char* argv[]) {
 
 	//create the server address
 	memset(&servaddr, 0, sockaddr_len);
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(0);
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin6_family = AF_INET6;
+	servaddr.sin6_port = htons(0);
+	//servaddr.sin6_addr.s6_addr = htonl(INADDR_ANY);
+  servaddr.sin6_addr = in6addr_any;
 
 
 	//open the socket
 	int lsock;
-	if ((lsock = socket(PF_INET,SOCK_STREAM, 0)) < 0) {
+	if ((lsock = socket(PF_INET6,SOCK_STREAM, 0)) < 0) {
 		perror("could not create listen socket\n");
 		return 1;
 	}
@@ -98,6 +99,10 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
+  //allow the ipv6 socket to also take in ipv4
+  int no = 0;
+  setsockopt(lsock, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&no, sizeof(no));
+
 	//open socket for listening
 	if (listen(lsock, 10) < 0) {
 		perror("failed to open socket for listening\n");
@@ -106,7 +111,7 @@ int main(int argc, char* argv[]) {
 
 	//print out new port for the socket
 	getsockname(lsock, (struct sockaddr *)&servaddr, &sockaddr_len);
-	printf("Port: %d\n",ntohs(servaddr.sin_port));
+	printf("Port: %d\n",ntohs(servaddr.sin6_port));
 
 	maxfds = lsock;
 	struct sockaddr_in cliaddr;
