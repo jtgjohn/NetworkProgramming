@@ -251,9 +251,14 @@ int main(int argc, char* argv[]) {
 						message = "Invalid JOIN command.\n";
 					} else { //Valid join command
 						if (channels.count(command_list[1]) == 0) { //channel doesnt exist, create it
-							std::unordered_set<std::string> emptyset;
-							emptyset.insert(command_list[1]);
-							channels[command_list[1]] = emptyset;
+							if (command_list[1]) {//CHECK REGEX
+								std::unordered_set<std::string> emptyset;
+								emptyset.insert(command_list[1]);
+								channels[command_list[1]] = emptyset;
+								message = "Joined channel " + command_list[1] + ".\n";
+							} else {
+								message = "Invalid channel name.\n";
+							}
 						} else {
 							std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
 							message = command_list[1] + "> "  +usernames[i] + " joined the channel.\n";
@@ -266,8 +271,8 @@ int main(int argc, char* argv[]) {
 								}
 							}
 							channels[command_list[1]].insert(usernames[i]);
+							message = "Joined channel " + command_list[1] + ".\n";
 						}
-						message = "Joined channel " + command_list[1] + ".\n";
 					}
 
 					write(clifds[i], message.c_str(), message.length());
@@ -348,7 +353,11 @@ int main(int argc, char* argv[]) {
 										}
 									}
 									channels[command_list[1]].erase(command_list[2]);
+								} else {
+									message = command_list[2] + " is not in channel " + command_list[1] + ".\n";
 								}
+							} else {
+								message = "Invalid channel name.\n";
 							}
 						} else { // current user is not an operator
 							message = "You must be an operator to kick another user.\n";
@@ -358,11 +367,68 @@ int main(int argc, char* argv[]) {
 					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "PRIVMSG") {
+					if (command_list.size() < 3) {
+						message = "Invalid PRIVMSG command.\n";
+					} else if(command_list[2].length() > 512) {
+						message = "Message must be no more than 512 bytes.\n";
+					} else {
+						if (command_list[1][0] == '#') { //message a channel
+							if (channels.count(command_list[1]) == 1) {
+								int in_channel = 0;
+								std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
+								for (; itr != channels[command_list[1]].end(); ++itr) {
+									if (*itr == usernames[i]) {
+										in_channel = 1;
+										break;
+									}
+								}
+								if (in_channel) {
+									itr = channels[command_list[1]].begin();
+									message = command_list[1] + "> " + usernames[i] + ": " + command_list[2] + "\n";
+									for (; itr != channels[command_list[1]].end(); ++itr) {
+										for (int j=0; j<usernames.size(); j++) {
+											if (*itr == usernames[j] && usernames[j] != usernames[i]) {
+												write(clifds[j], message.c_str(), message.length());
+												break;
+											}
+										}
+									}
+								} else {
+									message = "You are not in this channel.\n";
+								}
+							} else {
+								message = "Channel does not exist.\n";
+							}
+						} else { //message a specific user
+							int recipient_index;
+							int recipient_exists = 0;
+							for (int j=0; j<usernames.size(); j++) {
+								if (usernames[j] == command_list[1]) {
+									recipient_exists = 1;
+									recipient_index = j;
+									break;
+								}
+							}
+
+							if (recipient_exists) {
+								message = "<<" + usernames[i] + " " + command_list[2] + "\n";
+								write(clifds[recipient_index], message.c_str(), message.length());
+								message = command_list[1] + ">> " + command_list[2] + "\n";
+							} else {
+								message = "Invalid username for recipient.\n";
+							}
+						}
+					}
+
+					write(clifds[i], message.c_str(), message.length());
 
 				} else if (command == "QUIT") {
 
-				} else { //INVALID COMMAND
+					write(clifds[i], message.c_str(), message.length());
 
+				} else { //INVALID COMMAND
+					message = "Invalid command.\n";
+					write(clifds[i], message.c_str(), message.length());
 				}
 
 
