@@ -52,7 +52,6 @@ int main(int argc, char* argv[]) {
 	std::vector<int> clifds;
 	std::vector<std::string> usernames;
 	std::unordered_map<std::string, std::unordered_set<std::string> > channels;
-	std::unordered_map<std::string, std::unordered_set<std::string> > user_channels;
 	int numclients = 0;
 	int password_set = 0;
 	std::string password;
@@ -60,7 +59,7 @@ int main(int argc, char* argv[]) {
 	int maxfds;
   std::regex pwdAllowed("[a-zA-Z][_0-9a-zA-Z]*");
   std::regex usrAllowed("[a-zA-Z][_0-9a-zA-Z]*");
-  std::regex chnlAllowed("[a-zA-Z][_0-9a-zA-Z]*");
+  std::regex chnlAllowed("#[a-zA-Z][_0-9a-zA-Z]*");
   std::unordered_set<std::string> operators;
 
   if (argc > 1) {
@@ -237,7 +236,7 @@ int main(int argc, char* argv[]) {
               it++;
 						}
 					} else {
-						message = "There are currently " + std::to_string(channels[command_list[1]].size()) + " members.\n" + channel + "members:";
+						message = "There are currently " + std::to_string(channels[command_list[1]].size()) + " members.\n" + channel + "members: ";
 						std::unordered_set<std::string>::iterator itr = channels[command_list[1]].begin();
 						for(; itr != channels[command_list[1]].end(); ++itr) {
 							message += " " + *itr;
@@ -254,7 +253,7 @@ int main(int argc, char* argv[]) {
 						if (channels.count(command_list[1]) == 0) { //channel doesnt exist, create it
 							if ((regex_match(command_list[1], chnlAllowed)) && command_list[1].size() < 22) {//CHECK REGEX
 								std::unordered_set<std::string> emptyset;
-								emptyset.insert(command_list[1]);
+								emptyset.insert(usernames[i]);
 								channels[command_list[1]] = emptyset;
 								message = "Joined channel " + command_list[1] + ".\n";
 							} else {
