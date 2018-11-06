@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
 								}
 								if (in_channel) {
 									itr = channels[command_list[1]].begin();
-									message = command_list[1] + "> " + usernames[i] + ": " + command_list[2] + "\n";
+									message = command_list[1] + "> " + usernames[i] + ": " + command_list[2] ;
 									for (; itr != channels[command_list[1]].end(); ++itr) {
 										for (int j=0; j<usernames.size(); j++) {
 											if (*itr == usernames[j] && usernames[j] != usernames[i]) {
@@ -420,9 +420,9 @@ int main(int argc, char* argv[]) {
 							}
 
 							if (recipient_exists) {
-								message = "<<" + usernames[i] + " " + command_list[2] + "\n";
+								message = "<<" + usernames[i] + " " + command_list[2];
 								write(clifds[recipient_index], message.c_str(), message.length());
-								message = command_list[1] + ">> " + command_list[2] + "\n";
+								message = command_list[1] + ">> " + command_list[2];
 							} else {
 								message = "Invalid username for recipient.\n";
 							}
