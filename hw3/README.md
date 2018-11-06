@@ -17,18 +17,18 @@ PART
 	Otherwise if there is no argument it will remove them from all channels they are in.
 	Otherwise it will send an error message.
 OPERATOR
-	OPERATOR will bestow operator status if the password given is correct. 
+	OPERATOR will bestow operator status if the password given is correct.
 	If it is wrong or no argument is given it will send and error message.
 	If no password is set it in the server it will allow no operators.
 KICK
-	KICK will only work with three arguments. It will only kick the specified 
+	KICK will only work with three arguments. It will only kick the specified
 	user if they are in the specified channel, otherwise it will send an error message.
 	If user is not an operator, no one will be kicked.
 PRIVMSG
-	PRIVMSG works exaclty as specified in the assignment.
+	PRIVMSG works exactly as specified in the assignment.
 QUIT
 	QUIT will remove the user from all channels they are in, and will notify
-	all other users in those channels that the user quit (different error message than PART). 
+	all other users in those channels that the user quit (different error message than PART).
 	It will remove the user from the operator set and from usernames and clifds, and then
 	disconnect the user.
 
