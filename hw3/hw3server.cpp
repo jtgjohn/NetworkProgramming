@@ -229,8 +229,8 @@ int main(int argc, char* argv[]) {
             //iterate through channels and compare each to command_list[1], if equal set channel
             std::unordered_map<std::string, std::unordered_set<std::string> >::iterator it = channels.begin();
 						while (it != channels.end()) {
-              if (it->first == command_list[i]) {
-                channel = command_list[i];
+              if (it->first == command_list[1]) {
+                channel = command_list[1];
                 list_channels = 0;
               }
               it++;
