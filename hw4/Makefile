@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -std=c++11
+CFLAGS = -g -Wall -lcrypto -std=c++11
 FILES = dht.cpp
 
 
