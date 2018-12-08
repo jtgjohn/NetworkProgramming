@@ -67,11 +67,29 @@ void print_kbuckets(const std::vector<std::list< Node > > &kb) {
 		printf("Bucket %i:", i);
 		std::list<Node>::const_iterator itr;
 		for (itr = kb[i].begin(); itr != kb[i].end(); ++itr) {
-			printf(" %d", itr->id);
+			printf(" %x", itr->id);
 		}
 		printf("\n");
 	}
 }
+
+int node_in_buckets(const std::vector<std::list<Node > > &kb, uint8_t myid, const Node & n) {
+	int bucknum = log2(n.id^myid);
+	if (bucknum < 0) {
+		bucknum = 0;
+	}
+	int in = 0;
+	std::list<Node>::const_iterator itr;
+	for (itr = kb[bucknum].begin(); itr != kb[bucknum].end(); ++itr) {
+		if (itr->id == n.id) {
+			in = 1;
+			break;
+		}
+	}
+	return in;
+}
+
+
 
 int main(int argc, char* argv[]) {
 	if (argc != 5) {
@@ -177,8 +195,8 @@ int main(int argc, char* argv[]) {
 			input.assign(buffer, n);
 
 
-			std::vector<std::string> message_list = parser(buffer);
-			printf("Message: %s", buffer);
+			std::vector<std::string> message_list = parser(input);
+			printf("Message: %s", input.c_str());
 			if (message_list[0] == "HELLO") {
 				message = "MYID " + std::to_string(myid) + "\n";
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&recvaddr, sizeof(recvaddr));
@@ -187,11 +205,18 @@ int main(int argc, char* argv[]) {
 				newNode.port = ntohs(recvaddr.sin_port);
 				newNode.name = message_list[1];
 				int bucknum = log2(newNode.id^myid);
-				if (kbuckets[bucknum].size() > k) {
-					kbuckets[bucknum].pop_front();
-				} 
-				kbuckets[bucknum].push_back(newNode);
-				print_kbuckets(kbuckets);
+
+				//This should only happen when they are the same node
+				if (bucknum < 0) {
+					bucknum = 0;
+				}
+				if (!node_in_buckets(kbuckets, myid, newNode)) {
+					if (kbuckets[bucknum].size() >= k) {
+						kbuckets[bucknum].pop_front();
+					} 
+					kbuckets[bucknum].push_back(newNode);
+					print_kbuckets(kbuckets);
+				}
 			}
 
 			if (message_list[0] == "MYID") {
@@ -202,11 +227,17 @@ int main(int argc, char* argv[]) {
 				inet_ntop(AF_INET, &(recvaddr.sin_addr), buf, INET_ADDRSTRLEN);
 				newNode.name.assign(buf, INET_ADDRSTRLEN);
 				int bucknum = log2(newNode.id^myid);
-				if (kbuckets[bucknum].size() > k) {
-					kbuckets[bucknum].pop_front();
-				} 
-				kbuckets[bucknum].push_back(newNode);
-				print_kbuckets(kbuckets);
+				//This should only happen when they are the same node
+				if (bucknum < 0) {
+					bucknum = 0;
+				}
+				if (!node_in_buckets(kbuckets, myid, newNode)) {
+					if (kbuckets[bucknum].size() >= k) {
+						kbuckets[bucknum].pop_front();
+					} 
+					kbuckets[bucknum].push_back(newNode);
+					print_kbuckets(kbuckets);
+				}
 			}
 
 		}
