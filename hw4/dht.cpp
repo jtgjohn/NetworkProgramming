@@ -13,8 +13,17 @@
 #include <openssl/sha.h>
 #include <vector>
 #include <list>
-#include <tuple>
+#include <sys/time.h>
 
+
+#define MAXLINE 1024
+
+typedef struct {
+	std::string name;
+	int port;
+	uint8_t id;
+	int idset;
+} Node;
 
 //function to parse input sent to the server
 std::vector<std::string> parser(std::string toParse) {
@@ -58,6 +67,7 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 	std::string nodeName = argv[1];
+	std::string portstr = argv[2];
 	int port = atoi(argv[2]);
 	std::string seed = argv[3];
 	int k = atoi(argv[4]);
@@ -65,7 +75,10 @@ int main(int argc, char* argv[]) {
 	int sockfd;
 	struct sockaddr_in addr;
 	int finished_command = 1;
-	std::vector<std::list<std::tuple<std::string, int, int> > > kbuckets;
+	std::vector<std::list<Node > > kbuckets;
+
+
+	uint8_t myid;
 
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("server socket error\n");
@@ -74,8 +87,8 @@ int main(int argc, char* argv[]) {
 	sockaddr_len = sizeof(addr);
 	memset(&addr, 0 , sockaddr_len);
 	addr.sin_family = AF_INET;
-	addr.sin_port = port;
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(port);
+  inet_pton(AF_INET, argv[1], &addr.sin_addr);
 
   if ((bind(sockfd, (struct sockaddr*)&addr, sockaddr_len)) < 0) {
   	perror("failed binding socket\n");
@@ -97,19 +110,48 @@ int main(int argc, char* argv[]) {
 
 		if (finished_command && (FD_ISSET(fileno(stdin), &rset))) {
 
-			command_list = parser();
-			if (command_list[0] == "CONNECT") {
+			char buffer[MAXLINE];
+			int n = read(fileno(stdin), buffer, MAXLINE);
 
+			std::string input;
+			input.assign(buffer, n);
+
+			std::vector<std::string> command_list = parser(input);
+			if (command_list[0] == "CONNECT") {
+				std::string message = "HELLO " + nodeName + " " + portstr + "\n";
+				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&addr, sockaddr_len);
 			}
 		}
 		if (FD_ISSET(sockfd, &rset)) {
-			
-			message_list = parser();
-			if (message_list[0] == "HELLO") {
 
+			char buffer[MAXLINE];
+			struct sockaddr_in recvaddr;
+			socklen_t len = sizeof(recvaddr);
+			std::string message;
+
+
+			int n = recvfrom(sockfd, buffer, MAXLINE, 0 , (struct sockaddr *)&recvaddr, &len);
+
+			std::string input;
+			input.assign(buffer, n);
+
+
+			std::vector<std::string> message_list = parser(buffer);
+			if (message_list[0] == "HELLO") {
+				message = "MYID " + nodeName + "\n";
+				Node newNode;
+				newNode.id = atoi(message_list[2].c_str());
+				newNode.port = ntohs(recvaddr.sin_port);
+				newNode.name = message_list[1];
 			}
 
 			if (message_list[0] == "MYID") {
+				Node newNode;
+				newNode.id = atoi(message_list[1].c_str());
+				newNode.port = ntohs(recvaddr.sin_port);
+				char buf[INET_ADDRSTRLEN];
+				inet_ntop(AF_INET, &(recvaddr.sin_addr), buf, INET_ADDRSTRLEN);
+				newNode.name.assign(buf, INET_ADDRSTRLEN);
 
 			}
 
