@@ -15,6 +15,8 @@
 #include <list>
 #include <sys/time.h>
 #include <math.h>
+#include <utility>
+#include <algorithm>
 
 
 #define MAXLINE 1024
@@ -89,7 +91,39 @@ int node_in_buckets(const std::vector<std::list<Node > > &kb, uint8_t myid, cons
 	return in;
 }
 
+std::vector<std::pair<int, uint8_t> > find_k_closest(const std::vector<std::list<Node> > &kb, uint8_t id, int k) {
+	std::vector<std::pair<int, uint8_t> > closest; 
+	//create vector of pairs of xor and bucknum, then sort
+	//add first k bucknum to closest where xor matches
+	std::vector<std::pair<int, int> > xor_sort;
+	for (int i=0; i<kb.size(); i++) {
+		std::list<Node>::const_iterator itr;
+		for (itr = kb[i].begin(); itr != kb[i].end(); ++itr) {
+			std::pair<int, int> temp_pair = std::make_pair(id^itr->id, i);
+			xor_sort.push_back(temp_pair);
+		}
+	}
 
+	//sort the vector based on xor distance
+	std::sort(xor_sort.begin(), xor_sort.end());
+
+	//only go up to k values or if there are less than k values
+	int uptok = std::max((int)xor_sort.size(), k);
+
+	//add up to k values to the vector of closest matches and return it
+	for (int i=0; i<uptok; i++) {
+		std::list<Node>::const_iterator itr;
+		for (itr=kb[xor_sort[i].second].begin(); itr != kb[xor_sort[i].second].end(); ++itr) {
+			if (((itr->id)^id) == (xor_sort[i].first)) {
+				std::pair<int, uint8_t> temp_pair = std::make_pair(xor_sort[i].second, itr->id);
+				closest.push_back(temp_pair);
+				break;
+			}
+		}
+	}
+
+	return closest;
+}
 
 int main(int argc, char* argv[]) {
 	if (argc != 5) {
@@ -180,6 +214,9 @@ int main(int argc, char* argv[]) {
 				std::string message = "HELLO " + nodeName + " " + std::to_string(myid) + "\n";
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 			}
+			if (command_list[0] == "FIND_NODE") {
+
+			}
 		}
 		if (FD_ISSET(sockfd, &rset)) {
 
@@ -238,6 +275,14 @@ int main(int argc, char* argv[]) {
 					kbuckets[bucknum].push_back(newNode);
 					print_kbuckets(kbuckets);
 				}
+			}
+
+			if (message_list[0] == "FIND_NODE") {
+
+			}
+
+			if (message_list[0] == "NODE") {
+				
 			}
 
 		}
