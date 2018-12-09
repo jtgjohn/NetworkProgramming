@@ -215,7 +215,10 @@ int main(int argc, char* argv[]) {
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 			}
 			if (command_list[0] == "FIND_NODE") {
-
+				std::vector<std::pair<int, uint8_t> > closek = find_k_closest(kb,command_list[1], k);
+				for (int i=0; i<closek.size(); i++) {
+					
+				}
 			}
 		}
 		if (FD_ISSET(sockfd, &rset)) {
@@ -282,7 +285,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (message_list[0] == "NODE") {
-				
+
 			}
 
 		}
