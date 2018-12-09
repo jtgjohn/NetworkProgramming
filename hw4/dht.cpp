@@ -192,8 +192,16 @@ int main(int argc, char* argv[]) {
 		maxfds = std::max(maxfds, fileno(stdin));
 		maxfds++;
 
+		/*
+		struct timeval {
+			long tv_sec; //seconds
+			long tv_usec; //microseconds
+		};
+		*/
+		struct timeval timeout;
+		timeout.tv_sec = 1;
 
-		select(maxfds, &rset, NULL, NULL, NULL);
+		select(maxfds, &rset, NULL, NULL, &timeout);
 
 		if (finished_command && (FD_ISSET(fileno(stdin), &rset))) {
 
