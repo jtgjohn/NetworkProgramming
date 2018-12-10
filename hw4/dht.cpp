@@ -281,6 +281,10 @@ int main(int argc, char* argv[]) {
 				
 				sentcount = 1;
 				needtowait = 1;
+				if (sentcount == send_find_node.size()) {
+					needtowait = 0;
+					sendmore = 0;
+				}
 				
 			}
 		}
@@ -386,7 +390,8 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-			if (sendmore) {
+			if (sendmore && needtowait) {
+				printf("INDEX %d vs SIZE %d\n",sentcount, send_find_node.size());
 				int bucknum = send_find_node[sentcount].first;
 				uint8_t findid = send_find_node[sentcount].second;
 				std::list<Node>::iterator itr;
