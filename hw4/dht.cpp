@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
 
   int maxfds = sockfd;
   std::vector<std::pair<int, uint8_t> > send_find_node;
-  std::string lookingfornode;
+  uint8_t lookingfornode;
   int sendmore = 0;
   int sentcount = 0;
   struct sockaddr_in sendfind;
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
 				send.sin_port = htons(itr->port);
 				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
 
-				std::string message = "FIND_NODE " + lookingfornode +"\n";
+				std::string message = "FIND_NODE " + std::to_string(lookingfornode) +"\n";
 
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 				sentcount++;
@@ -267,12 +267,13 @@ int main(int argc, char* argv[]) {
 				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
 				inet_pton(AF_INET, (itr->name).c_str(), &(sendfind.sin_addr));
 
-				lookingfornode = command_list[1];
+				lookingfornode = atoi(command_list[1]);
 				std::string message = "FIND_NODE " + command_list[1] +"\n";
 
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
-				sendmore = 1;
+				
 				sentcount = 1;
+				
 			}
 		}
 		if (FD_ISSET(sockfd, &rset)) {
@@ -351,11 +352,15 @@ int main(int argc, char* argv[]) {
 
 			if (message_list[0] == "NODE") {
 				int n = 0;
+				sendmore = 1;
 				while (n < message_list.size()) {
 					Node newNode;
 					newNode.name = message_list[n+1];
 					newNode.port = atoi(message_list[n+2].c_str());
 					newNode.id = atoi(message_list[n+3].c_str());
+					if (newNode.id == lookingfornode) {
+						sendmore = 0;
+					}
 					int bucknum = log2(newNode.id^myid);
 					//This should only happen when they are the same node
 					if (bucknum < 0) {
@@ -369,6 +374,30 @@ int main(int argc, char* argv[]) {
 						print_kbuckets(kbuckets);
 					}
 					n += 4;
+				}
+			}
+
+			if (sendmore) {
+				int bucknum = send_find_node[sentcount].first;
+				uint8_t findid = send_find_node[sentcount].second;
+				std::list<Node>::iterator itr;
+				for (itr=kbuckets[bucknum].begin(); itr != kbuckets[bucknum].end(); ++itr) {
+					if (itr->id == findid) {
+						break;
+					}
+				}
+				struct sockaddr_in send;
+				memset(&send, 0, sizeof(send));
+				send.sin_family = AF_INET;
+				send.sin_port = htons(itr->port);
+				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
+
+				std::string message = "FIND_NODE " + std::to_string(lookingfornode) +"\n";
+
+				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
+				sentcount++;
+				if (sentcount == send_find_node.size()) {
+					sendmore = 0;
 				}
 			}
 
