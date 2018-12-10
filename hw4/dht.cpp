@@ -183,8 +183,10 @@ int main(int argc, char* argv[]) {
 
   int maxfds = sockfd;
   std::vector<std::pair<int, uint8_t> > send_find_node;
+  std::string lookingfornode;
   int sendmore = 0;
   int sentcount = 0;
+  struct sockaddr_in sendfind;
 
   fd_set rset;
 	while(1) {
@@ -198,6 +200,33 @@ int main(int argc, char* argv[]) {
 		timeout.tv_sec = 3;
 
 		select(maxfds, &rset, NULL, NULL, &timeout);
+
+		if (timeout) {
+			if (sendmore) {
+				int bucknum = send_find_node[sentcount].first;
+				uint8_t findid = send_find_node[sentcount].second;
+				std::list<Node>::iterator itr;
+				for (itr=kbuckets[bucknum].begin(); itr != kbuckets[bucknum].end(); ++itr) {
+					if (itr->id == findid) {
+						break;
+					}
+				}
+				struct sockaddr_in send;
+				memset(&send, 0, sizeof(send));
+				send.sin_family = AF_INET;
+				send.sin_port = htons(itr->port);
+				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
+
+				std::string message = "FIND_NODE " + lookingfornode +"\n";
+
+				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
+				sentcount++;
+				if (sentcount == send_find_node.size()) {
+					sendmore = 0;
+				}
+			}
+			continue;
+		}
 
 		if (finished_command && (FD_ISSET(fileno(stdin), &rset))) {
 
@@ -230,10 +259,17 @@ int main(int argc, char* argv[]) {
 				}
 				struct sockaddr_in send;
 				memset(&send, 0, sizeof(send));
+				memset(&sendfind, 0 , sizeof(sendfind));
 				send.sin_family = AF_INET;
+				sendfind.sin_family = AF_INET;
 				send.sin_port = htons(itr->port);
+				sendfind.sin_family = htons(itr->port);
 				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
+				inet_pton(AF_INET, (itr->name).c_str(), &(sendfind.sin_addr));
+
+				lookingfornode = command_list[1];
 				std::string message = "FIND_NODE " + command_list[1] +"\n";
+
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 				sendmore = 1;
 				sentcount = 1;
@@ -335,6 +371,9 @@ int main(int argc, char* argv[]) {
 					n += 4;
 				}
 			}
+
+
+
 
 		}
 
