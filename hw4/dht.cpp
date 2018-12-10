@@ -187,6 +187,7 @@ int main(int argc, char* argv[]) {
   int sendmore = 0;
   int sentcount = 0;
   struct sockaddr_in sendfind;
+  int needtowait = 0;
 
   fd_set rset;
 	while(1) {
@@ -198,32 +199,38 @@ int main(int argc, char* argv[]) {
 
 		struct timeval timeout;
 		timeout.tv_sec = 3;
+		timeout.tv_usec = 0;
+		int tout;
 
-		select(maxfds, &rset, NULL, NULL, &timeout);
+		if (needtowait) {
+			tout = select(maxfds, &rset, NULL, NULL, &timeout);
+		}
+		else {
+			tout = select(maxfds, &rset, NULL, NULL, NULL);
+		}
 
-		if (timeout) {
-			if (sendmore) {
-				int bucknum = send_find_node[sentcount].first;
-				uint8_t findid = send_find_node[sentcount].second;
-				std::list<Node>::iterator itr;
-				for (itr=kbuckets[bucknum].begin(); itr != kbuckets[bucknum].end(); ++itr) {
-					if (itr->id == findid) {
-						break;
-					}
+		if (tout == 0) {
+			int bucknum = send_find_node[sentcount].first;
+			uint8_t findid = send_find_node[sentcount].second;
+			std::list<Node>::iterator itr;
+			for (itr=kbuckets[bucknum].begin(); itr != kbuckets[bucknum].end(); ++itr) {
+				if (itr->id == findid) {
+					break;
 				}
-				struct sockaddr_in send;
-				memset(&send, 0, sizeof(send));
-				send.sin_family = AF_INET;
-				send.sin_port = htons(itr->port);
-				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
+			}
+			struct sockaddr_in send;
+			memset(&send, 0, sizeof(send));
+			send.sin_family = AF_INET;
+			send.sin_port = htons(itr->port);
+			inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
 
-				std::string message = "FIND_NODE " + std::to_string(lookingfornode) +"\n";
+			std::string message = "FIND_NODE " + std::to_string(lookingfornode) +"\n";
 
-				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
-				sentcount++;
-				if (sentcount == send_find_node.size()) {
-					sendmore = 0;
-				}
+			sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
+			sentcount++;
+			if (sentcount == send_find_node.size()) {
+				sendmore = 0;
+				needtowait = 0;
 			}
 			continue;
 		}
@@ -267,12 +274,13 @@ int main(int argc, char* argv[]) {
 				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
 				inet_pton(AF_INET, (itr->name).c_str(), &(sendfind.sin_addr));
 
-				lookingfornode = atoi(command_list[1]);
+				lookingfornode = atoi(command_list[1].c_str());
 				std::string message = "FIND_NODE " + command_list[1] +"\n";
 
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 				
 				sentcount = 1;
+				needtowait = 1;
 				
 			}
 		}
@@ -360,6 +368,7 @@ int main(int argc, char* argv[]) {
 					newNode.id = atoi(message_list[n+3].c_str());
 					if (newNode.id == lookingfornode) {
 						sendmore = 0;
+						needtowait = 0;
 					}
 					int bucknum = log2(newNode.id^myid);
 					//This should only happen when they are the same node
@@ -397,6 +406,7 @@ int main(int argc, char* argv[]) {
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 				sentcount++;
 				if (sentcount == send_find_node.size()) {
+					needtowait = 0;
 					sendmore = 0;
 				}
 			}
