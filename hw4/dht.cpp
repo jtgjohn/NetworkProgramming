@@ -25,7 +25,6 @@ typedef struct {
 	std::string name;
 	int port;
 	uint8_t id;
-	int idset;
 } Node;
 
 //function to parse input sent to the server
@@ -183,6 +182,9 @@ int main(int argc, char* argv[]) {
   }
 
   int maxfds = sockfd;
+  std::vector<std::pair<int, uint8_t> > send_find_node;
+  int sendmore = 0;
+  int sentcount = 0;
 
   fd_set rset;
 	while(1) {
@@ -192,14 +194,8 @@ int main(int argc, char* argv[]) {
 		maxfds = std::max(maxfds, fileno(stdin));
 		maxfds++;
 
-		/*
-		struct timeval {
-			long tv_sec; //seconds
-			long tv_usec; //microseconds
-		};
-		*/
 		struct timeval timeout;
-		timeout.tv_sec = 1;
+		timeout.tv_sec = 3;
 
 		select(maxfds, &rset, NULL, NULL, &timeout);
 
@@ -223,10 +219,24 @@ int main(int argc, char* argv[]) {
 				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
 			}
 			if (command_list[0] == "FIND_NODE") {
-				std::vector<std::pair<int, uint8_t> > closek = find_k_closest(kb,command_list[1], k);
-				for (int i=0; i<closek.size(); i++) {
-					
+				send_find_node = find_k_closest(kbuckets,atoi(command_list[1].c_str()), k);
+				int bucknum = send_find_node[0].first;
+				uint8_t findid = send_find_node[0].second;
+				std::list<Node>::iterator itr;
+				for (itr=kbuckets[bucknum].begin(); itr != kbuckets[bucknum].end(); ++itr) {
+					if (itr->id == findid) {
+						break;
+					}
 				}
+				struct sockaddr_in send;
+				memset(&send, 0, sizeof(send));
+				send.sin_family = AF_INET;
+				send.sin_port = htons(itr->port);
+				inet_pton(AF_INET, (itr->name).c_str(), &(send.sin_addr));
+				std::string message = "FIND_NODE " + command_list[1] +"\n";
+				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&send, sizeof(send));
+				sendmore = 1;
+				sentcount = 1;
 			}
 		}
 		if (FD_ISSET(sockfd, &rset)) {
@@ -289,11 +299,41 @@ int main(int argc, char* argv[]) {
 			}
 
 			if (message_list[0] == "FIND_NODE") {
-
+				std::vector<std::pair< int, uint8_t> > retnodes = find_k_closest(kbuckets, atoi(message_list[1].c_str()), k);
+				std::string message =  "";
+				for (int i=0; i<retnodes.size(); i++) {
+					std::list<Node>::iterator itr = kbuckets[retnodes[i].first].begin();
+					for (; itr != kbuckets[retnodes[i].first].end(); ++itr) {
+						if (itr->id == retnodes[i].second) {
+							message += "NODE " + itr->name + " " + std::to_string(itr->port) + " " + std::to_string(itr->id) + "\n";
+							break;
+ 						}
+					}
+				}
+				sendto(sockfd, message.c_str(), message.length(), 0, (struct sockaddr *)&recvaddr, sizeof(recvaddr));
 			}
 
 			if (message_list[0] == "NODE") {
-
+				int n = 0;
+				while (n < message_list.size()) {
+					Node newNode;
+					newNode.name = message_list[n+1];
+					newNode.port = atoi(message_list[n+2].c_str());
+					newNode.id = atoi(message_list[n+3].c_str());
+					int bucknum = log2(newNode.id^myid);
+					//This should only happen when they are the same node
+					if (bucknum < 0) {
+						bucknum = 0;
+					}
+					if (!node_in_buckets(kbuckets, myid, newNode)) {
+						if (kbuckets[bucknum].size() >= k) {
+							kbuckets[bucknum].pop_front();
+						} 
+						kbuckets[bucknum].push_back(newNode);
+						print_kbuckets(kbuckets);
+					}
+					n += 4;
+				}
 			}
 
 		}
