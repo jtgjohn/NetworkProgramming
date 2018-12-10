@@ -107,7 +107,7 @@ std::vector<std::pair<int, uint8_t> > find_k_closest(const std::vector<std::list
 	std::sort(xor_sort.begin(), xor_sort.end());
 
 	//only go up to k values or if there are less than k values
-	int uptok = std::max((int)xor_sort.size(), k);
+	int uptok = std::min((int)xor_sort.size(), k);
 
 	//add up to k values to the vector of closest matches and return it
 	for (int i=0; i<uptok; i++) {
